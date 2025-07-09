@@ -27,8 +27,7 @@ corner.Parent = mainFrame
 
 -- Create title bar
 local titleBar = Instance.new("Frame")
-titleBar.Name = "TitleBar
-
+titleBar.Name = "TitleBar"
 titleBar.Size = UDim2.new(1, 0, 0, 30)
 titleBar.Position = UDim2.new(0, 0, 0, 0)
 titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -166,7 +165,7 @@ local function startGliding()
         bodyVelocity.Velocity = velocity
         
         -- Rotate player to face direction
-        local targetCFrame = CFrame.new(rootPart.Position, rootPart.Position + Vector3.new(lookDirection.X, 0, look、健康
+        local targetCFrame = CFrame.new(rootPart.Position, rootPart.Position + Vector3.new(lookDirection.X, 0, lookDirection.Z))
         rootPart.CFrame = rootPart.CFrame:lerp(targetCFrame, 0.1)
     end)
     
@@ -176,7 +175,7 @@ end
 local function stopGliding()
     if not isGliding then return end
     
-    isGliding falso
+    isGliding = false
     glideTimeLeft = 0
     
     if glideConnection then
