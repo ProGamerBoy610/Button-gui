@@ -1,6 +1,3 @@
--- Draggable Teleport GUI for Roblox
--- UP/DOWN teleport with toggle button
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -52,6 +49,23 @@ titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleText.TextScaled = true
 titleText.Font = Enum.Font.GothamBold
 titleText.Parent = titleBar
+
+-- Create close button
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Position = UDim2.new(1, -25, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = titleBar
+
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(0, 5)
+closeButtonCorner.Parent = closeButton
 
 -- Create toggle button
 local toggleButton = Instance.new("TextButton")
@@ -152,13 +166,27 @@ toggleButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Hover effects
+-- Close button event
+closeButton.MouseButton1Click:Connect(function()
+    screenGui.Enabled = false
+end)
+
+-- Hover effects for toggle button
 toggleButton.MouseEnter:Connect(function()
     toggleButton.BackgroundColor3 = isUp and Color3.fromRGB(30, 150, 235) or Color3.fromRGB(235, 80, 80)
 end)
 
 toggleButton.MouseLeave:Connect(function()
     toggleButton.BackgroundColor3 = isUp and Color3.fromRGB(0, 170, 255) or Color3.fromRGB(255, 100, 100)
+end)
+
+-- Hover effects for close button
+closeButton.MouseEnter:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(235, 60, 60)
+end)
+
+closeButton.MouseLeave:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 end)
 
 print("Teleport GUI loaded successfully!")
