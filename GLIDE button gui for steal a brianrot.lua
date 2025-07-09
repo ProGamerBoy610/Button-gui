@@ -1,6 +1,3 @@
--- Draggable Glide GUI with Timer for Roblox
--- 20-second glide timer with cooldown
-
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
@@ -30,7 +27,8 @@ corner.Parent = mainFrame
 
 -- Create title bar
 local titleBar = Instance.new("Frame")
-titleBar.Name = "TitleBar"
+titleBar.Name = "TitleBar
+
 titleBar.Size = UDim2.new(1, 0, 0, 30)
 titleBar.Position = UDim2.new(0, 0, 0, 0)
 titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
@@ -52,6 +50,23 @@ titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
 titleText.TextScaled = true
 titleText.Font = Enum.Font.GothamBold
 titleText.Parent = titleBar
+
+-- Create close button
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Position = UDim2.new(1, -25, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = titleBar
+
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(0, 5)
+closeButtonCorner.Parent = closeButton
 
 -- Create glide button
 local glideButton = Instance.new("TextButton")
@@ -151,7 +166,7 @@ local function startGliding()
         bodyVelocity.Velocity = velocity
         
         -- Rotate player to face direction
-        local targetCFrame = CFrame.new(rootPart.Position, rootPart.Position + Vector3.new(lookDirection.X, 0, lookDirection.Z))
+        local targetCFrame = CFrame.new(rootPart.Position, rootPart.Position + Vector3.new(lookDirection.X, 0, look、健康
         rootPart.CFrame = rootPart.CFrame:lerp(targetCFrame, 0.1)
     end)
     
@@ -161,7 +176,7 @@ end
 local function stopGliding()
     if not isGliding then return end
     
-    isGliding = false
+    isGliding falso
     glideTimeLeft = 0
     
     if glideConnection then
@@ -223,7 +238,12 @@ glideButton.MouseButton1Click:Connect(function()
     end
 end)
 
--- Hover effects
+-- Close button event
+closeButton.MouseButton1Click:Connect(function()
+    screenGui.Enabled = false
+end)
+
+-- Hover effects for glide button
 glideButton.MouseEnter:Connect(function()
     if glideButton.Active then
         if isGliding then
@@ -242,6 +262,15 @@ glideButton.MouseLeave:Connect(function()
             glideButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
         end
     end
+end)
+
+-- Hover effects for close button
+closeButton.MouseEnter:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(235, 60, 60)
+end)
+
+closeButton.MouseLeave:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
 end)
 
 -- Cleanup
