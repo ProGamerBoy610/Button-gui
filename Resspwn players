@@ -1,0 +1,176 @@
+-- Roblox Player Reset and Fast Spawn Script
+-- Execute this script to reset your character and enable fast spawning
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoid = character:WaitForChild("Humanoid")
+
+-- Fast spawn settings
+local fastSpawnEnabled = true
+local originalRespawnTime = Players.RespawnTime
+local fastRespawnTime = 0.1 -- Very fast respawn
+
+-- Function to reset player character with instant respawn
+local function resetPlayer()
+    if player.Character and player.Character:FindFirstChild("Humanoid") then
+        -- Kill the character
+        player.Character.Humanoid.Health = 0
+        
+        -- If fast spawn is enabled, force immediate respawn
+        if fastSpawnEnabled then
+            spawn(function()
+                wait(0.2) -- Wait for character to be removed
+                pcall(function()
+                    player:LoadCharacter()
+                end)
+            end)
+        end
+        
+        print("Player reset successfully!")
+    end
+end
+
+-- Function to enable fast spawn
+local function enableFastSpawn()
+    -- Method 1: Try to modify RespawnTime (may not work in all games)
+    pcall(function()
+        Players.RespawnTime = fastRespawnTime
+    end)
+    
+    -- Method 2: Force immediate respawn by creating new character
+    local connection
+    connection = player.CharacterRemoving:Connect(function(oldCharacter)
+        if fastSpawnEnabled then
+            wait(0.1) -- Small delay to ensure character is fully removed
+            
+            -- Force load character immediately
+            pcall(function()
+                player:LoadCharacter()
+            end)
+            
+            print("Fast respawn triggered!")
+        end
+    end)
+    
+    -- Method 3: Handle new character spawning
+    local spawnConnection
+    spawnConnection = player.CharacterAdded:Connect(function(newCharacter)
+        if fastSpawnEnabled then
+            -- Instantly teleport to spawn or safe location
+            local humanoidRootPart = newCharacter:WaitForChild("HumanoidRootPart")
+            
+            -- Find spawn location or use current position
+            local spawnLocation = workspace.SpawnLocation
+            if spawnLocation then
+                humanoidRootPart.CFrame = spawnLocation.CFrame + Vector3.new(0, 5, 0)
+            end
+            
+            print("Fast spawn activated!")
+        end
+    end)
+    
+    -- Store connections for cleanup
+    _G.fastSpawnConnection = connection
+    _G.fastSpawnConnection2 = spawnConnection
+end
+
+-- Function to disable fast spawn
+local function disableFastSpawn()
+    fastSpawnEnabled = false
+    
+    -- Restore original respawn time
+    pcall(function()
+        Players.RespawnTime = originalRespawnTime
+    end)
+    
+    -- Disconnect the connections if they exist
+    if _G.fastSpawnConnection then
+        _G.fastSpawnConnection:Disconnect()
+        _G.fastSpawnConnection = nil
+    end
+    
+    if _G.fastSpawnConnection2 then
+        _G.fastSpawnConnection2:Disconnect()
+        _G.fastSpawnConnection2 = nil
+    end
+    
+    print("Fast spawn disabled!")
+end
+
+-- Function to teleport to spawn instantly
+local function teleportToSpawn()
+    if player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+        local spawnLocation = workspace.SpawnLocation
+        if spawnLocation then
+            player.Character.HumanoidRootPart.CFrame = spawnLocation.CFrame + Vector3.new(0, 5, 0)
+            print("Teleported to spawn!")
+        else
+            -- If no spawn location, teleport to origin
+            player.Character.HumanoidRootPart.CFrame = CFrame.new(0, 50, 0)
+            print("Teleported to origin!")
+        end
+    end
+end
+
+-- Main execution function
+local function execute()
+    print("=== ROBLOX RESET & FAST SPAWN SCRIPT ===")
+    print("Enabling fast spawn...")
+    
+    -- Enable fast spawn
+    enableFastSpawn()
+    
+    -- Reset the player
+    print("Resetting player...")
+    resetPlayer()
+    
+    print("Script executed successfully!")
+    print("Fast spawn is now enabled!")
+    print("Press F9 to open console for more info")
+end
+
+-- Key bindings for additional control
+local UserInputService = game:GetService("UserInputService")
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.R then
+        resetPlayer()
+    elseif input.KeyCode == Enum.KeyCode.T then
+        teleportToSpawn()
+    elseif input.KeyCode == Enum.KeyCode.F then
+        if fastSpawnEnabled then
+            disableFastSpawn()
+        else
+            enableFastSpawn()
+        end
+    end
+end)
+
+-- Execute the script
+execute()
+
+-- Additional utility functions
+_G.resetPlayer = resetPlayer
+_G.enableFastSpawn = enableFastSpawn
+_G.disableFastSpawn = disableFastSpawn
+_G.teleportToSpawn = teleportToSpawn
+
+-- Print controls
+print("=== CONTROLS ===")
+print("R - Reset player")
+print("T - Teleport to spawn")
+print("F - Toggle fast spawn")
+print("================")
+
+-- Auto-cleanup on player leaving
+player.AncestryChanged:Connect(function()
+    if not player.Parent then
+        disableFastSpawn()
+    end
+end)
