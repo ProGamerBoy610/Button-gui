@@ -1,0 +1,513 @@
+-- Beautiful Player GUI Script for Roblox Executor with watermark
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "PlayerListGui"
+ScreenGui.Parent = PlayerGui
+ScreenGui.ResetOnSpawn = false
+
+-- Main Frame (Beautiful landscape design)
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 520, 0, 320)
+MainFrame.Position = UDim2.new(0.5, -260, 0.5, -160)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 12)
+MainCorner.Parent = MainFrame
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = Color3.fromRGB(100, 100, 255)
+MainStroke.Thickness = 2
+MainStroke.Transparency = 0.3
+MainStroke.Parent = MainFrame
+
+local MainGradient = Instance.new("UIGradient")
+MainGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 50)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 30))
+}
+MainGradient.Rotation = 45
+MainGradient.Parent = MainFrame
+
+-- Title Bar
+local TitleBar = Instance.new("Frame")
+TitleBar.Size = UDim2.new(1, 0, 0, 35)
+TitleBar.Position = UDim2.new(0, 0, 0, 0)
+TitleBar.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+TitleBar.BorderSizePixel = 0
+TitleBar.Parent = MainFrame
+
+local TitleCorner = Instance.new("UICorner")
+TitleCorner.CornerRadius = UDim.new(0, 12)
+TitleCorner.Parent = TitleBar
+
+local TitleStroke = Instance.new("UIStroke")
+TitleStroke.Color = Color3.fromRGB(80, 80, 200)
+TitleStroke.Thickness = 1
+TitleStroke.Transparency = 0.5
+TitleStroke.Parent = TitleBar
+
+local TitleGradient = Instance.new("UIGradient")
+TitleGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 40, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 40))
+}
+TitleGradient.Rotation = 90
+TitleGradient.Parent = TitleBar
+
+local TitleLabel = Instance.new("TextLabel")
+TitleLabel.Size = UDim2.new(1, -40, 1, 0)
+TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+TitleLabel.BackgroundTransparency = 1
+TitleLabel.Font = Enum.Font.GothamBold
+TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+TitleLabel.TextSize = 16
+TitleLabel.Text = "🎮 Player Teleporter"
+TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+TitleLabel.Parent = TitleBar
+
+local CloseButton = Instance.new("TextButton")
+CloseButton.Size = UDim2.new(0, 28, 0, 28)
+CloseButton.Position = UDim2.new(1, -32, 0, 3.5)
+CloseButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+CloseButton.BorderSizePixel = 0
+CloseButton.Font = Enum.Font.GothamBold
+CloseButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseButton.TextSize = 14
+CloseButton.Text = "×"
+CloseButton.Parent = TitleBar
+
+local CloseCorner = Instance.new("UICorner")
+CloseCorner.CornerRadius = UDim.new(0, 6)
+CloseCorner.Parent = CloseButton
+
+local CloseStroke = Instance.new("UIStroke")
+CloseStroke.Color = Color3.fromRGB(200, 60, 60)
+CloseStroke.Thickness = 1
+CloseStroke.Parent = CloseButton
+
+-- Player Section
+local PlayerSection = Instance.new("Frame")
+PlayerSection.Size = UDim2.new(0.65, -10, 1, -45)
+PlayerSection.Position = UDim2.new(0, 10, 0, 40)
+PlayerSection.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+PlayerSection.BorderSizePixel = 0
+PlayerSection.Parent = MainFrame
+
+local PlayerSectionCorner = Instance.new("UICorner")
+PlayerSectionCorner.CornerRadius = UDim.new(0, 8)
+PlayerSectionCorner.Parent = PlayerSection
+
+local PlayerSectionStroke = Instance.new("UIStroke")
+PlayerSectionStroke.Color = Color3.fromRGB(60, 60, 150)
+PlayerSectionStroke.Thickness = 1
+PlayerSectionStroke.Transparency = 0.6
+PlayerSectionStroke.Parent = PlayerSection
+
+local PlayerHeader = Instance.new("TextLabel")
+PlayerHeader.Size = UDim2.new(1, -10, 0, 25)
+PlayerHeader.Position = UDim2.new(0, 5, 0, 5)
+PlayerHeader.BackgroundTransparency = 1
+PlayerHeader.Font = Enum.Font.GothamSemibold
+PlayerHeader.TextColor3 = Color3.fromRGB(200, 200, 255)
+PlayerHeader.TextSize = 12
+PlayerHeader.Text = "👥 Online Players"
+PlayerHeader.TextXAlignment = Enum.TextXAlignment.Left
+PlayerHeader.Parent = PlayerSection
+
+local ScrollFrame = Instance.new("ScrollingFrame")
+ScrollFrame.Size = UDim2.new(1, -10, 1, -35)
+ScrollFrame.Position = UDim2.new(0, 5, 0, 30)
+ScrollFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+ScrollFrame.BorderSizePixel = 0
+ScrollFrame.ScrollBarThickness = 4
+ScrollFrame.ScrollBarImageColor3 = Color3.fromRGB(100, 100, 255)
+ScrollFrame.Parent = PlayerSection
+
+local ScrollCorner = Instance.new("UICorner")
+ScrollCorner.CornerRadius = UDim.new(0, 6)
+ScrollCorner.Parent = ScrollFrame
+
+local ScrollStroke = Instance.new("UIStroke")
+ScrollStroke.Color = Color3.fromRGB(40, 40, 80)
+ScrollStroke.Thickness = 1
+ScrollStroke.Transparency = 0.7
+ScrollStroke.Parent = ScrollFrame
+
+local UIListLayout = Instance.new("UIListLayout")
+UIListLayout.SortOrder = Enum.SortOrder.Name
+UIListLayout.Padding = UDim.new(0, 3)
+UIListLayout.Parent = ScrollFrame
+
+-- Action Section
+local ActionSection = Instance.new("Frame")
+ActionSection.Size = UDim2.new(0.35, -10, 1, -45)
+ActionSection.Position = UDim2.new(0.65, 5, 0, 40)
+ActionSection.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+ActionSection.BorderSizePixel = 0
+ActionSection.Parent = MainFrame
+
+local ActionSectionCorner = Instance.new("UICorner")
+ActionSectionCorner.CornerRadius = UDim.new(0, 8)
+ActionSectionCorner.Parent = ActionSection
+
+local ActionSectionStroke = Instance.new("UIStroke")
+ActionSectionStroke.Color = Color3.fromRGB(60, 60, 150)
+ActionSectionStroke.Thickness = 1
+ActionSectionStroke.Transparency = 0.6
+ActionSectionStroke.Parent = ActionSection
+
+local ActionHeader = Instance.new("TextLabel")
+ActionHeader.Size = UDim2.new(1, -10, 0, 25)
+ActionHeader.Position = UDim2.new(0, 5, 0, 5)
+ActionHeader.BackgroundTransparency = 1
+ActionHeader.Font = Enum.Font.GothamSemibold
+ActionHeader.TextColor3 = Color3.fromRGB(200, 200, 255)
+ActionHeader.TextSize = 12
+ActionHeader.Text = "⚡ Actions"
+ActionHeader.TextXAlignment = Enum.TextXAlignment.Left
+ActionHeader.Parent = ActionSection
+
+local SelectedPlayerFrame = Instance.new("Frame")
+SelectedPlayerFrame.Size = UDim2.new(1, -10, 0, 60)
+SelectedPlayerFrame.Position = UDim2.new(0, 5, 0, 35)
+SelectedPlayerFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+SelectedPlayerFrame.BorderSizePixel = 0
+SelectedPlayerFrame.Parent = ActionSection
+
+local SelectedFrameCorner = Instance.new("UICorner")
+SelectedFrameCorner.CornerRadius = UDim.new(0, 6)
+SelectedFrameCorner.Parent = SelectedPlayerFrame
+
+local SelectedFrameStroke = Instance.new("UIStroke")
+SelectedFrameStroke.Color = Color3.fromRGB(80, 80, 200)
+SelectedFrameStroke.Thickness = 1
+SelectedFrameStroke.Transparency = 0.5
+SelectedFrameStroke.Parent = SelectedPlayerFrame
+
+local SelectedPlayerImage = Instance.new("ImageLabel")
+SelectedPlayerImage.Size = UDim2.new(0, 40, 0, 40)
+SelectedPlayerImage.Position = UDim2.new(0, 10, 0, 10)
+SelectedPlayerImage.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+SelectedPlayerImage.BorderSizePixel = 0
+SelectedPlayerImage.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+SelectedPlayerImage.Parent = SelectedPlayerFrame
+
+local SelectedImageCorner = Instance.new("UICorner")
+SelectedImageCorner.CornerRadius = UDim.new(0, 6)
+SelectedImageCorner.Parent = SelectedPlayerImage
+
+local SelectedImageStroke = Instance.new("UIStroke")
+SelectedImageStroke.Color = Color3.fromRGB(100, 100, 255)
+SelectedImageStroke.Thickness = 1
+SelectedImageStroke.Parent = SelectedPlayerImage
+
+local SelectedPlayerLabel = Instance.new("TextLabel")
+SelectedPlayerLabel.Size = UDim2.new(1, -65, 1, 0)
+SelectedPlayerLabel.Position = UDim2.new(0, 55, 0, 0)
+SelectedPlayerLabel.BackgroundTransparency = 1
+SelectedPlayerLabel.Font = Enum.Font.GothamSemibold
+SelectedPlayerLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+SelectedPlayerLabel.TextSize = 12
+SelectedPlayerLabel.Text = "No player selected"
+SelectedPlayerLabel.TextWrapped = true
+SelectedPlayerLabel.TextXAlignment = Enum.TextXAlignment.Left
+SelectedPlayerLabel.TextYAlignment = Enum.TextYAlignment.Center
+SelectedPlayerLabel.Parent = SelectedPlayerFrame
+
+local CancelButton = Instance.new("TextButton")
+CancelButton.Size = UDim2.new(1, -10, 0, 35)
+CancelButton.Position = UDim2.new(0, 5, 0, 105)
+CancelButton.BackgroundColor3 = Color3.fromRGB(120, 60, 60)
+CancelButton.BorderSizePixel = 0
+CancelButton.Font = Enum.Font.GothamSemibold
+CancelButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+CancelButton.TextSize = 12
+CancelButton.Text = "❌ Cancel"
+CancelButton.Parent = ActionSection
+
+local CancelCorner = Instance.new("UICorner")
+CancelCorner.CornerRadius = UDim.new(0, 6)
+CancelCorner.Parent = CancelButton
+
+local CancelStroke = Instance.new("UIStroke")
+CancelStroke.Color = Color3.fromRGB(160, 80, 80)
+CancelStroke.Thickness = 1
+CancelStroke.Parent = CancelButton
+
+local CancelGradient = Instance.new("UIGradient")
+CancelGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(140, 70, 70)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 50, 50))
+}
+CancelGradient.Rotation = 90
+CancelGradient.Parent = CancelButton
+
+local TPButton = Instance.new("TextButton")
+TPButton.Size = UDim2.new(1, -10, 0, 35)
+TPButton.Position = UDim2.new(0, 5, 0, 150)
+TPButton.BackgroundColor3 = Color3.fromRGB(60, 120, 60)
+TPButton.BorderSizePixel = 0
+TPButton.Font = Enum.Font.GothamSemibold
+TPButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+TPButton.TextSize = 12
+TPButton.Text = "🚀 Teleport"
+TPButton.Parent = ActionSection
+
+local TPCorner = Instance.new("UICorner")
+TPCorner.CornerRadius = UDim.new(0, 6)
+TPCorner.Parent = TPButton
+
+local TPStroke = Instance.new("UIStroke")
+TPStroke.Color = Color3.fromRGB(80, 160, 80)
+TPStroke.Thickness = 1
+TPStroke.Parent = TPButton
+
+local TPGradient = Instance.new("UIGradient")
+TPGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(70, 140, 70)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 100, 50))
+}
+TPGradient.Rotation = 90
+TPGradient.Parent = TPButton
+
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -10, 0, 20)
+StatusLabel.Position = UDim2.new(0, 5, 1, -25)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Font = Enum.Font.Gotham
+StatusLabel.TextColor3 = Color3.fromRGB(150, 150, 200)
+StatusLabel.TextSize = 10
+StatusLabel.Text = "Ready to teleport"
+StatusLabel.TextXAlignment = Enum.TextXAlignment.Center
+StatusLabel.Parent = ActionSection
+
+-- Watermark
+local Watermark = Instance.new("TextLabel")
+Watermark.Size = UDim2.new(0, 150, 0, 20)
+Watermark.Position = UDim2.new(1, -155, 1, -25)
+Watermark.AnchorPoint = Vector2.new(0, 0)
+Watermark.BackgroundTransparency = 1
+Watermark.Font = Enum.Font.Gotham
+Watermark.TextColor3 = Color3.fromRGB(120, 120, 180)
+Watermark.TextSize = 10
+Watermark.TextXAlignment = Enum.TextXAlignment.Right
+Watermark.Text = "By Fryzer Hub"
+Watermark.Parent = MainFrame-- Variables
+local selectedPlayer = nil
+local playerFrames = {}
+
+-- Functions
+local function createPlayerFrame(player)
+    local PlayerFrame = Instance.new("TextButton")
+    PlayerFrame.Size = UDim2.new(1, -8, 0, 50)
+    PlayerFrame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    PlayerFrame.BorderSizePixel = 0
+    PlayerFrame.AutoButtonColor = false
+    PlayerFrame.Parent = ScrollFrame
+
+    local PlayerCorner = Instance.new("UICorner")
+    PlayerCorner.CornerRadius = UDim.new(0, 6)
+    PlayerCorner.Parent = PlayerFrame
+
+    local PlayerStroke = Instance.new("UIStroke")
+    PlayerStroke.Color = Color3.fromRGB(60, 60, 120)
+    PlayerStroke.Thickness = 1
+    PlayerStroke.Transparency = 0.7
+    PlayerStroke.Parent = PlayerFrame
+
+    local PlayerGradient = Instance.new("UIGradient")
+    PlayerGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(45, 45, 70)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 55))
+    }
+    PlayerGradient.Rotation = 90
+    PlayerGradient.Parent = PlayerFrame
+
+    local PlayerImage = Instance.new("ImageLabel")
+    PlayerImage.Size = UDim2.new(0, 40, 0, 40)
+    PlayerImage.Position = UDim2.new(0, 5, 0, 5)
+    PlayerImage.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+    PlayerImage.BorderSizePixel = 0
+    PlayerImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=48&height=48&format=png"
+    PlayerImage.Parent = PlayerFrame
+
+    local ImageCorner = Instance.new("UICorner")
+    ImageCorner.CornerRadius = UDim.new(0, 6)
+    ImageCorner.Parent = PlayerImage
+
+    local ImageStroke = Instance.new("UIStroke")
+    ImageStroke.Color = Color3.fromRGB(100, 100, 255)
+    ImageStroke.Thickness = 1
+    ImageStroke.Transparency = 0.5
+    ImageStroke.Parent = PlayerImage
+
+    local PlayerName = Instance.new("TextLabel")
+    PlayerName.Size = UDim2.new(1, -55, 1, 0)
+    PlayerName.Position = UDim2.new(0, 50, 0, 0)
+    PlayerName.BackgroundTransparency = 1
+    PlayerName.Font = Enum.Font.GothamSemibold
+    PlayerName.TextColor3 = Color3.fromRGB(255, 255, 255)
+    PlayerName.TextSize = 13
+    PlayerName.Text = player.Name
+    PlayerName.TextXAlignment = Enum.TextXAlignment.Left
+    PlayerName.TextYAlignment = Enum.TextYAlignment.Center
+    PlayerName.Parent = PlayerFrame
+
+    PlayerFrame.MouseButton1Click:Connect(function()
+        selectedPlayer = player
+        SelectedPlayerLabel.Text = player.Name
+        SelectedPlayerImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId="..player.UserId.."&width=48&height=48&format=png"
+        StatusLabel.Text = "Selected: " .. player.Name
+
+        for _, frame in pairs(playerFrames) do
+            frame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+            frame.UIStroke.Color = Color3.fromRGB(60, 60, 120)
+        end
+        PlayerFrame.BackgroundColor3 = Color3.fromRGB(80, 80, 150)
+        PlayerFrame.UIStroke.Color = Color3.fromRGB(120, 120, 255)
+
+        local tween = TweenService:Create(PlayerFrame, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(80, 80, 150)})
+        tween:Play()
+    end)
+
+    PlayerFrame.MouseEnter:Connect(function()
+        if PlayerFrame.BackgroundColor3 ~= Color3.fromRGB(80, 80, 150) then
+            local tween = TweenService:Create(PlayerFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(50, 50, 80)})
+            tween:Play()
+        end
+    end)
+
+    PlayerFrame.MouseLeave:Connect(function()
+        if PlayerFrame.BackgroundColor3 ~= Color3.fromRGB(80, 80, 150) then
+            local tween = TweenService:Create(PlayerFrame, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(40, 40, 60)})
+            tween:Play()
+        end
+    end)
+
+    playerFrames[player] = PlayerFrame
+end
+
+local function updatePlayerList()
+    for player, frame in pairs(playerFrames) do
+        frame:Destroy()
+    end
+    playerFrames = {}
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            createPlayerFrame(player)
+        end
+    end
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+end
+
+local function teleportToPlayer(targetPlayer)
+    if targetPlayer and targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame + Vector3.new(0, 0, -3)
+            StatusLabel.Text = "Teleported to " .. targetPlayer.Name
+            wait(2)
+            StatusLabel.Text = "Ready to teleport"
+        end
+    else
+        StatusLabel.Text = "Teleport failed!"
+        wait(2)
+        StatusLabel.Text = "Ready to teleport"
+    end
+end
+
+-- Events
+CloseButton.MouseButton1Click:Connect(function()
+    local tween = TweenService:Create(MainFrame, TweenInfo.new(0.3), {Size = UDim2.new(0, 0, 0, 0)})
+    tween:Play()
+    tween.Completed:Connect(function()
+        ScreenGui:Destroy()
+    end)
+end)
+
+CancelButton.MouseButton1Click:Connect(function()
+    selectedPlayer = nil
+    SelectedPlayerLabel.Text = "No player selected"
+    SelectedPlayerImage.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+    StatusLabel.Text = "Ready to teleport"
+    for _, frame in pairs(playerFrames) do
+        frame.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+        frame.UIStroke.Color = Color3.fromRGB(60, 60, 120)
+    end
+end)
+
+TPButton.MouseButton1Click:Connect(function()
+    if selectedPlayer then
+        StatusLabel.Text = "Teleporting..."
+        teleportToPlayer(selectedPlayer)
+    else
+        StatusLabel.Text = "No player selected!"
+        wait(2)
+        StatusLabel.Text = "Ready to teleport"
+    end
+end)
+
+-- Hover effects
+CloseButton.MouseEnter:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(255, 100, 100)}):Play()
+end)
+CloseButton.MouseLeave:Connect(function()
+    TweenService:Create(CloseButton, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(255, 80, 80)}):Play()
+end)
+CancelButton.MouseEnter:Connect(function()
+    TweenService:Create(CancelButton, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(140, 70, 70)}):Play()
+end)
+CancelButton.MouseLeave:Connect(function()
+    TweenService:Create(CancelButton, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(120, 60, 60)}):Play()
+end)
+TPButton.MouseEnter:Connect(function()
+    TweenService:Create(TPButton, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(70, 140, 70)}):Play()
+end)
+TPButton.MouseLeave:Connect(function()
+    TweenService:Create(TPButton, TweenInfo.new(0.1), {BackgroundColor3 = Color3.fromRGB(60, 120, 60)}):Play()
+end)
+
+-- Resize scroll when content changes
+UIListLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, UIListLayout.AbsoluteContentSize.Y)
+end)
+Players.PlayerAdded:Connect(updatePlayerList)
+Players.PlayerRemoving:Connect(updatePlayerList)
+
+-- Dragging
+local dragging, dragStart, startPos
+TitleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = MainFrame.Position
+    end
+end)
+UserInputService.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        MainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Entrance animation
+MainFrame.Size = UDim2.new(0, 0, 0, 0)
+TweenService:Create(MainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Size = UDim2.new(0, 520, 0, 320)}):Play()
+
+-- Init
+updatePlayerList()
+print("✨ Beautiful Player GUI by Fryzer Hub loaded successfully!")
