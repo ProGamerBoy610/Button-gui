@@ -1,0 +1,401 @@
+-- MM2 ESP GUI - Cool Blue Theme (Compact)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+-- Remove existing GUI if it exists
+if PlayerGui:FindFirstChild("MM2_ESP_GUI") then
+    PlayerGui:FindFirstChild("MM2_ESP_GUI"):Destroy()
+end
+
+-- Create main GUI
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "MM2_ESP_GUI"
+screenGui.Parent = PlayerGui
+
+-- Main frame (compact size with blue theme)
+local mainFrame = Instance.new("Frame")
+mainFrame.Size = UDim2.new(0, 420, 0, 280)
+mainFrame.Position = UDim2.new(0.5, -210, 0.5, -140)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 25, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Cool blue gradient background
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 40, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 40))
+}
+gradient.Rotation = 45
+gradient.Parent = mainFrame
+
+-- Corner rounding
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+-- Glowing border effect
+local borderFrame = Instance.new("Frame")
+borderFrame.Size = UDim2.new(1, 4, 1, 4)
+borderFrame.Position = UDim2.new(0, -2, 0, -2)
+borderFrame.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+borderFrame.BorderSizePixel = 0
+borderFrame.ZIndex = -1
+borderFrame.Parent = mainFrame
+
+local borderCorner = Instance.new("UICorner")
+borderCorner.CornerRadius = UDim.new(0, 14)
+borderCorner.Parent = borderFrame
+
+-- Title bar with cool blue theme
+local titleBar = Instance.new("Frame")
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(30, 60, 120)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleGradient = Instance.new("UIGradient")
+titleGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 80, 160)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 40, 80))
+}
+titleGradient.Rotation = 90
+titleGradient.Parent = titleBar
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 12)
+titleCorner.Parent = titleBar
+
+-- Title text with cool effect
+local titleText = Instance.new("TextLabel")
+titleText.Size = UDim2.new(1, -80, 1, 0)
+titleText.Position = UDim2.new(0, 15, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "🎯 MM2 ESP"
+titleText.TextColor3 = Color3.fromRGB(100, 200, 255)
+titleText.TextScaled = true
+titleText.Font = Enum.Font.GothamBold
+titleText.TextStrokeTransparency = 0.5
+titleText.TextStrokeColor3 = Color3.fromRGB(0, 50, 100)
+titleText.Parent = titleBar
+
+-- Close button with hover effect
+local closeButton = Instance.new("TextButton")
+closeButton.Size = UDim2.new(0, 22, 0, 22)
+closeButton.Position = UDim2.new(1, -26, 0, 4)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 60, 60)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "✕"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 6)
+closeCorner.Parent = closeButton
+
+-- ScrollingFrame for players
+local scrollFrame = Instance.new("ScrollingFrame")
+scrollFrame.Size = UDim2.new(1, -16, 1, -40)
+scrollFrame.Position = UDim2.new(0, 8, 0, 35)
+scrollFrame.BackgroundColor3 = Color3.fromRGB(10, 20, 40)
+scrollFrame.BorderSizePixel = 0
+scrollFrame.ScrollBarThickness = 4
+scrollFrame.ScrollBarImageColor3 = Color3.fromRGB(50, 150, 255)
+scrollFrame.Parent = mainFrame
+
+local scrollCorner = Instance.new("UICorner")
+scrollCorner.CornerRadius = UDim.new(0, 8)
+scrollCorner.Parent = scrollFrame
+
+-- UIListLayout for player frames
+local listLayout = Instance.new("UIListLayout")
+listLayout.SortOrder = Enum.SortOrder.Name
+listLayout.Padding = UDim.new(0, 3)
+listLayout.Parent = scrollFrame
+
+-- Function to get player role
+local function getRole(player)
+    local toolCheck = function(container)
+        if not container then return nil end
+        if container:FindFirstChild("Gun") then return "Sheriff" end
+        if container:FindFirstChild("Knife") then return "Murderer" end
+        return nil
+    end
+    return toolCheck(player:FindFirstChildOfClass("Backpack")) or toolCheck(player.Character) or "Innocent"
+end
+
+-- Function to get role color and icon
+local function getRoleInfo(role)
+    if role == "Sheriff" then
+        return Color3.fromRGB(100, 200, 255), "🔫"
+    elseif role == "Murderer" then
+        return Color3.fromRGB(255, 80, 80), "🔪"
+    else
+        return Color3.fromRGB(200, 200, 200), "😇"
+    end
+end
+
+-- Function to teleport to player
+local function teleportToPlayer(targetPlayer)
+    if targetPlayer.Character and targetPlayer.Character:FindFirstChild("HumanoidRootPart") and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+        LocalPlayer.Character.HumanoidRootPart.CFrame = targetPlayer.Character.HumanoidRootPart.CFrame
+    end
+end
+
+-- Function to create player frame
+local function createPlayerFrame(player)
+    local playerFrame = Instance.new("Frame")
+    playerFrame.Size = UDim2.new(1, -8, 0, 45)
+    playerFrame.BackgroundColor3 = Color3.fromRGB(20, 35, 65)
+    playerFrame.BorderSizePixel = 0
+    playerFrame.Parent = scrollFrame
+    
+    -- Cool frame gradient
+    local frameGradient = Instance.new("UIGradient")
+    frameGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 45, 85)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 25, 45))
+    }
+    frameGradient.Rotation = 45
+    frameGradient.Parent = playerFrame
+    
+    local frameCorner = Instance.new("UICorner")
+    frameCorner.CornerRadius = UDim.new(0, 6)
+    frameCorner.Parent = playerFrame
+    
+    -- Player image (smaller)
+    local playerImage = Instance.new("ImageLabel")
+    playerImage.Size = UDim2.new(0, 35, 0, 35)
+    playerImage.Position = UDim2.new(0, 5, 0, 5)
+    playerImage.BackgroundColor3 = Color3.fromRGB(40, 80, 160)
+    playerImage.BorderSizePixel = 0
+    playerImage.Image = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. player.UserId .. "&width=420&height=420&format=png"
+    playerImage.Parent = playerFrame
+    
+    local imageCorner = Instance.new("UICorner")
+    imageCorner.CornerRadius = UDim.new(0, 17)
+    imageCorner.Parent = playerImage
+    
+    -- Blue glow around image
+    local imageGlow = Instance.new("Frame")
+    imageGlow.Size = UDim2.new(0, 39, 0, 39)
+    imageGlow.Position = UDim2.new(0, 3, 0, 3)
+    imageGlow.BackgroundColor3 = Color3.fromRGB(50, 150, 255)
+    imageGlow.BorderSizePixel = 0
+    imageGlow.ZIndex = -1
+    imageGlow.Parent = playerFrame
+    
+    local glowCorner = Instance.new("UICorner")
+    glowCorner.CornerRadius = UDim.new(0, 19)
+    glowCorner.Parent = imageGlow
+    
+    -- Player name (compact)
+    local playerName = Instance.new("TextLabel")
+    playerName.Size = UDim2.new(0, 140, 0, 16)
+    playerName.Position = UDim2.new(0, 48, 0, 2)
+    playerName.BackgroundTransparency = 1
+    playerName.Text = player.Name
+    playerName.TextColor3 = Color3.fromRGB(150, 200, 255)
+    playerName.TextScaled = true
+    playerName.Font = Enum.Font.GothamBold
+    playerName.TextXAlignment = Enum.TextXAlignment.Left
+    playerName.Parent = playerFrame
+    
+    -- Role label with icon
+    local roleLabel = Instance.new("TextLabel")
+    roleLabel.Size = UDim2.new(0, 140, 0, 16)
+    roleLabel.Position = UDim2.new(0, 48, 0, 18)
+    roleLabel.BackgroundTransparency = 1
+    local role = getRole(player)
+    local roleColor, roleIcon = getRoleInfo(role)
+    roleLabel.Text = roleIcon .. " " .. role
+    roleLabel.TextColor3 = roleColor
+    roleLabel.TextScaled = true
+    roleLabel.Font = Enum.Font.Gotham
+    roleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    roleLabel.Parent = playerFrame
+    
+    -- Teleport button (compact with cool design)
+    local tpButton = Instance.new("TextButton")
+    tpButton.Size = UDim2.new(0, 55, 0, 20)
+    tpButton.Position = UDim2.new(1, -60, 0, 12.5)
+    tpButton.BackgroundColor3 = Color3.fromRGB(30, 100, 200)
+    tpButton.BorderSizePixel = 0
+    tpButton.Text = "🚀 TP"
+    tpButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+    tpButton.TextScaled = true
+    tpButton.Font = Enum.Font.GothamBold
+    tpButton.Parent = playerFrame
+    
+    -- Button gradient
+    local buttonGradient = Instance.new("UIGradient")
+    buttonGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 120, 240)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 80, 160))
+    }
+    buttonGradient.Rotation = 90
+    buttonGradient.Parent = tpButton
+    
+    local tpCorner = Instance.new("UICorner")
+    tpCorner.CornerRadius = UDim.new(0, 5)
+    tpCorner.Parent = tpButton
+    
+    -- Button hover effect
+    tpButton.MouseEnter:Connect(function()
+        local tween = TweenService:Create(tpButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(50, 150, 255)})
+        tween:Play()
+    end)
+    
+    tpButton.MouseLeave:Connect(function()
+        local tween = TweenService:Create(tpButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(30, 100, 200)})
+        tween:Play()
+    end)
+    
+    -- Teleport button functionality
+    tpButton.MouseButton1Click:Connect(function()
+        teleportToPlayer(player)
+        -- Cool click effect
+        local clickTween = TweenService:Create(tpButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 50, 0, 18)})
+        clickTween:Play()
+        clickTween.Completed:Connect(function()
+            local backTween = TweenService:Create(tpButton, TweenInfo.new(0.1), {Size = UDim2.new(0, 55, 0, 20)})
+            backTween:Play()
+        end)
+    end)
+    
+    return playerFrame, roleLabel
+end
+
+-- Store player frames and role labels
+local playerFrames = {}
+local roleLabels = {}
+
+-- Function to update player list
+local function updatePlayerList()
+    -- Clear existing frames
+    for _, frame in pairs(playerFrames) do
+        frame:Destroy()
+    end
+    playerFrames = {}
+    roleLabels = {}
+    
+    -- Create frames for all players except local player
+    for _, player in pairs(Players:GetPlayers()) do
+        if player ~= LocalPlayer then
+            local frame, roleLabel = createPlayerFrame(player)
+            playerFrames[player] = frame
+            roleLabels[player] = roleLabel
+        end
+    end
+    
+    -- Update canvas size
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+end
+
+-- Function to update roles
+local function updateRoles()
+    for player, roleLabel in pairs(roleLabels) do
+        if player.Parent then
+            local role = getRole(player)
+            local roleColor, roleIcon = getRoleInfo(role)
+            roleLabel.Text = roleIcon .. " " .. role
+            roleLabel.TextColor3 = roleColor
+        end
+    end
+end
+
+-- Initial setup
+updatePlayerList()
+
+-- Update roles every 1 second
+spawn(function()
+    while screenGui.Parent do
+        updateRoles()
+        wait(1)
+    end
+end)
+
+-- Update canvas size when layout changes
+listLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+    scrollFrame.CanvasSize = UDim2.new(0, 0, 0, listLayout.AbsoluteContentSize.Y)
+end)
+
+-- Handle player joining
+Players.PlayerAdded:Connect(function(player)
+    wait(0.1)
+    updatePlayerList()
+end)
+
+-- Handle player leaving
+Players.PlayerRemoving:Connect(function(player)
+    if playerFrames[player] then
+        playerFrames[player]:Destroy()
+        playerFrames[player] = nil
+        roleLabels[player] = nil
+    end
+end)
+
+-- Close button with hover effect
+closeButton.MouseEnter:Connect(function()
+    local tween = TweenService:Create(closeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 100, 100)})
+    tween:Play()
+end)
+
+closeButton.MouseLeave:Connect(function()
+    local tween = TweenService:Create(closeButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(255, 60, 60)})
+    tween:Play()
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+-- Make GUI draggable
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+titleBar.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+    end
+end)
+
+titleBar.InputChanged:Connect(function(input)
+    if dragging and input.UserInputType == Enum.UserInputType.MouseMovement then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+titleBar.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 then
+        dragging = false
+    end
+end)
+
+-- Cool loading animation
+local function playLoadAnimation()
+    mainFrame.Size = UDim2.new(0, 0, 0, 0)
+    local loadTween = TweenService:Create(mainFrame, TweenInfo.new(0.5, Enum.EasingStyle.Back), {Size = UDim2.new(0, 420, 0, 280)})
+    loadTween:Play()
+end
+
+playLoadAnimation()
+
+print("✅ MM2 ESP GUI loaded with cool blue theme!")
+print("🎨 Features:")
+print("   • Compact design (420x280)")
+print("   • Cool blue gradient theme")
+print("   • Glowing borders and effects")
+print("   • Smooth animations")
+print("   • Role icons and colors")
+print("   • Hover effects on buttons")
