@@ -1,0 +1,230 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- GUI Setup
+local screenGui = Instance.new("ScreenGui", playerGui)
+screenGui.Name = "CoinTeleportGui"
+
+local mainFrame = Instance.new("Frame", screenGui)
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 220, 0, 120)
+mainFrame.Position = UDim2.new(0.5, -110, 0.5, -60)
+mainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+Instance.new("UICorner", mainFrame).CornerRadius = UDim.new(0, 10)
+
+local titleBar = Instance.new("Frame", mainFrame)
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+titleBar.BorderSizePixel = 0
+Instance.new("UICorner", titleBar).CornerRadius = UDim.new(0, 10)
+
+local titleText = Instance.new("TextLabel", titleBar)
+titleText.Size = UDim2.new(1, 0, 1, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "Coin Teleporter"
+titleText.TextColor3 = Color3.new(1, 1, 1)
+titleText.TextScaled = true
+titleText.Font = Enum.Font.GothamBold
+
+local closeButton = Instance.new("TextButton", titleBar)
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Position = UDim2.new(1, -25, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.new(1, 1, 1)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+Instance.new("UICorner", closeButton).CornerRadius = UDim.new(0, 5)
+
+local toggleFrame = Instance.new("Frame", mainFrame)
+toggleFrame.Size = UDim2.new(0, 60, 0, 30)
+toggleFrame.Position = UDim2.new(0.5, -30, 0.5, -5)
+toggleFrame.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+Instance.new("UICorner", toggleFrame).CornerRadius = UDim.new(0, 15)
+
+local toggleButton = Instance.new("TextButton", toggleFrame)
+toggleButton.Size = UDim2.new(0, 26, 0, 26)
+toggleButton.Position = UDim2.new(0, 2, 0, 2)
+toggleButton.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.Text = ""
+Instance.new("UICorner", toggleButton).CornerRadius = UDim.new(0, 13)
+
+local statusText = Instance.new("TextLabel", mainFrame)
+statusText.Size = UDim2.new(1, 0, 0, 20)
+statusText.Position = UDim2.new(0, 0, 1, -25)
+statusText.BackgroundTransparency = 1
+statusText.Text = "OFF"
+statusText.TextColor3 = Color3.new(1, 1, 1)
+statusText.TextScaled = true
+statusText.Font = Enum.Font.Gotham
+
+-- Variables
+local isToggled = false
+local teleportThread = nil
+local currentCoinIndex = 1
+local coins = {}
+local teleportActive = false
+
+-- Functions
+local function getCharacter()
+    return player.Character or player.CharacterAdded:Wait()
+end
+
+local function getRootPart()
+    local character = getCharacter()
+    return character:FindFirstChild("HumanoidRootPart")
+end
+
+local function getHumanoid()
+    return getCharacter():FindFirstChild("Humanoid")
+end
+
+local function makePlayerJump()
+    local humanoid = getHumanoid()
+    if humanoid then
+        humanoid.Jump = true
+        pcall(function()
+            humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+        end)
+    end
+end
+
+local function findAllCoins()
+    coins = {}
+    for _, obj in pairs(workspace:GetDescendants()) do
+        if obj:IsA("BasePart") and obj.Name == "Coin_Server" then
+            table.insert(coins, obj)
+        end
+    end
+end
+
+local function teleportToNextCoin()
+    if teleportActive or #coins == 0 then return end
+    teleportActive = true
+
+    local root = getRootPart()
+    if not root then
+        teleportActive = false
+        return
+    end
+
+    local coin = coins[currentCoinIndex]
+    if not coin or not coin.Parent then
+        findAllCoins()
+        currentCoinIndex = 1
+        coin = coins[currentCoinIndex]
+    end
+
+    if not coin then
+        teleportActive = false
+        return
+    end
+
+    makePlayerJump()
+    wait(0.5)
+
+    local success = pcall(function()
+        root.CFrame = CFrame.new(coin.Position + Vector3.new(0, 5, 0))
+    end)
+
+    if success then
+        currentCoinIndex = currentCoinIndex + 1
+        if currentCoinIndex > #coins then
+            currentCoinIndex = 1
+        end
+    end
+
+    teleportActive = false
+end
+
+local function startTeleporting()
+    if teleportThread then return end
+
+    findAllCoins()
+    if #coins == 0 then
+        warn("No Coin_Server found")
+        return
+    end
+
+    teleportThread = coroutine.create(function()
+        while isToggled do
+            teleportToNextCoin()
+            wait(3.5)
+        end
+        teleportThread = nil
+    end)
+
+    coroutine.resume(teleportThread)
+end
+
+local function stopTeleporting()
+    isToggled = false
+    teleportThread = nil
+end
+
+local function toggleTeleporter()
+    isToggled = not isToggled
+
+    local targetPos = isToggled and UDim2.new(0, 32, 0, 2) or UDim2.new(0, 2, 0, 2)
+    local targetColor = isToggled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 80, 80)
+
+    TweenService:Create(toggleButton, TweenInfo.new(0.2), {Position = targetPos}):Play()
+    TweenService:Create(toggleFrame, TweenInfo.new(0.2), {BackgroundColor3 = targetColor}):Play()
+
+    statusText.Text = isToggled and "ON" or "OFF"
+
+    if isToggled then
+        startTeleporting()
+    else
+        stopTeleporting()
+    end
+end
+
+toggleButton.MouseButton1Click:Connect(toggleTeleporter)
+toggleFrame.MouseButton1Click:Connect(toggleTeleporter)
+
+closeButton.MouseButton1Click:Connect(function()
+    stopTeleporting()
+    screenGui:Destroy()
+end)
+
+-- Optional: refresh coins every 5 seconds while enabled
+spawn(function()
+    while screenGui.Parent do
+        if isToggled then
+            findAllCoins()
+        end
+        wait(5)
+    end
+end)
+
+player.CharacterAdded:Connect(function()
+    if isToggled then
+        wait(2)
+        findAllCoins()
+    end
+end)
+
+-- Hover effects
+toggleFrame.MouseEnter:Connect(function()
+    toggleFrame.BackgroundTransparency = 0.1
+end)
+toggleFrame.MouseLeave:Connect(function()
+    toggleFrame.BackgroundTransparency = 0
+end)
+closeButton.MouseEnter:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(235, 60, 60)
+end)
+closeButton.MouseLeave:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+end)
+
+print("✅ Coin Teleporter GUI loaded. Toggle to teleport to Coin_Server objects.")
