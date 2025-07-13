@@ -1,0 +1,408 @@
+-- Roblox Dropdown GUI Script
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create main ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "DropdownGUI"
+screenGui.ResetOnSpawn = false -- Prevents GUI from being destroyed when player dies
+screenGui.Parent = playerGui
+
+-- Main dropdown frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 220, 0, 60)
+mainFrame.Position = UDim2.new(0, 50, 0, 50)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Add gradient to main frame
+local mainGradient = Instance.new("UIGradient")
+mainGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(25, 40, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 50))
+}
+mainGradient.Rotation = 45
+mainGradient.Parent = mainFrame
+
+-- Corner rounding
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 12)
+mainCorner.Parent = mainFrame
+
+-- Add glow effect
+local mainStroke = Instance.new("UIStroke")
+mainStroke.Color = Color3.fromRGB(0, 120, 255)
+mainStroke.Thickness = 2
+mainStroke.Transparency = 0.3
+mainStroke.Parent = mainFrame
+
+-- Dropdown header button
+local headerButton = Instance.new("TextButton")
+headerButton.Name = "HeaderButton"
+headerButton.Size = UDim2.new(1, 0, 1, 0)
+headerButton.Position = UDim2.new(0, 0, 0, 0)
+headerButton.BackgroundColor3 = Color3.fromRGB(30, 50, 100)
+headerButton.BorderSizePixel = 0
+headerButton.Text = "⚡ Fryzer Hub ⚡"
+headerButton.TextColor3 = Color3.fromRGB(150, 200, 255)
+headerButton.TextScaled = true
+headerButton.Font = Enum.Font.GothamBold
+headerButton.Parent = mainFrame
+
+-- Header gradient
+local headerGradient = Instance.new("UIGradient")
+headerGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(40, 70, 140)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(25, 50, 100)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(15, 30, 80))
+}
+headerGradient.Rotation = 90
+headerGradient.Parent = headerButton
+
+local headerCorner = Instance.new("UICorner")
+headerCorner.CornerRadius = UDim.new(0, 12)
+headerCorner.Parent = headerButton
+
+-- Header glow
+local headerStroke = Instance.new("UIStroke")
+headerStroke.Color = Color3.fromRGB(0, 150, 255)
+headerStroke.Thickness = 1
+headerStroke.Transparency = 0.5
+headerStroke.Parent = headerButton
+
+-- Dropdown content frame
+local dropdownFrame = Instance.new("Frame")
+dropdownFrame.Name = "DropdownFrame"
+dropdownFrame.Size = UDim2.new(1, 0, 0, 0)
+dropdownFrame.Position = UDim2.new(0, 0, 1, 2)
+dropdownFrame.BackgroundColor3 = Color3.fromRGB(10, 20, 40)
+dropdownFrame.BorderSizePixel = 0
+dropdownFrame.ClipsDescendants = true
+dropdownFrame.Parent = mainFrame
+
+-- Dropdown gradient
+local dropdownGradient = Instance.new("UIGradient")
+dropdownGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(20, 40, 80)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(10, 20, 50))
+}
+dropdownGradient.Rotation = 180
+dropdownGradient.Parent = dropdownFrame
+
+local dropdownCorner = Instance.new("UICorner")
+dropdownCorner.CornerRadius = UDim.new(0, 12)
+dropdownCorner.Parent = dropdownFrame
+
+-- Dropdown glow
+local dropdownStroke = Instance.new("UIStroke")
+dropdownStroke.Color = Color3.fromRGB(0, 100, 200)
+dropdownStroke.Thickness = 2
+dropdownStroke.Transparency = 0.4
+dropdownStroke.Parent = dropdownFrame
+
+-- Variables for button states
+local walkspeedEnabled = false
+local jumpPowerEnabled = false
+local isDropdownOpen = false
+
+-- Callback functions
+local function onWalkspeedToggle()
+    walkspeedEnabled = not walkspeedEnabled
+    
+    if walkspeedEnabled then
+        -- Change to green dot and increase walkspeed
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = 45
+        end
+        print("Walkspeed increased to 45")
+    else
+        -- Change to red dot and reset walkspeed
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.WalkSpeed = 16
+        end
+        print("Walkspeed reset to 16")
+    end
+end
+
+local function onJumpPowerToggle()
+    jumpPowerEnabled = not jumpPowerEnabled
+    
+    if jumpPowerEnabled then
+        -- Change to green dot and increase jump power
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.JumpPower = 100
+        end
+        print("Jump power increased to 100")
+    else
+        -- Change to red dot and reset jump power
+        if player.Character and player.Character:FindFirstChild("Humanoid") then
+            player.Character.Humanoid.JumpPower = 50
+        end
+        print("Jump power reset to 50")
+    end
+end
+
+-- Function to reapply abilities when character respawns
+local function onCharacterAdded(character)
+    local humanoid = character:WaitForChild("Humanoid")
+    
+    -- Reapply walkspeed if enabled
+    if walkspeedEnabled then
+        humanoid.WalkSpeed = 45
+    end
+    
+    -- Reapply jump power if enabled
+    if jumpPowerEnabled then
+        humanoid.JumpPower = 100
+    end
+end
+
+-- Connect character respawn event
+player.CharacterAdded:Connect(onCharacterAdded)
+
+local function destroyGUI()
+    screenGui:Destroy()
+    print("GUI destroyed")
+end
+
+-- Create buttons
+local function createToggleButton(name, position, callback)
+    local button = Instance.new("TextButton")
+    button.Name = name
+    button.Size = UDim2.new(1, -20, 0, 35)
+    button.Position = position
+    button.BackgroundColor3 = Color3.fromRGB(25, 45, 90)
+    button.BorderSizePixel = 0
+    button.TextColor3 = Color3.fromRGB(150, 200, 255)
+    button.TextScaled = true
+    button.Font = Enum.Font.GothamSemibold
+    button.Parent = dropdownFrame
+    
+    -- Button gradient
+    local buttonGradient = Instance.new("UIGradient")
+    buttonGradient.Color = ColorSequence.new{
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 60, 120)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 35, 70))
+    }
+    buttonGradient.Rotation = 45
+    buttonGradient.Parent = button
+    
+    local buttonCorner = Instance.new("UICorner")
+    buttonCorner.CornerRadius = UDim.new(0, 8)
+    buttonCorner.Parent = button
+    
+    -- Button glow
+    local buttonStroke = Instance.new("UIStroke")
+    buttonStroke.Color = Color3.fromRGB(0, 120, 255)
+    buttonStroke.Thickness = 1
+    buttonStroke.Transparency = 0.6
+    buttonStroke.Parent = button
+    
+    -- Create status dot with glow
+    local statusDot = Instance.new("Frame")
+    statusDot.Name = "StatusDot"
+    statusDot.Size = UDim2.new(0, 12, 0, 12)
+    statusDot.Position = UDim2.new(0, 8, 0.5, -6)
+    statusDot.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+    statusDot.BorderSizePixel = 0
+    statusDot.Parent = button
+    
+    local dotCorner = Instance.new("UICorner")
+    dotCorner.CornerRadius = UDim.new(0, 6)
+    dotCorner.Parent = statusDot
+    
+    -- Dot glow effect
+    local dotStroke = Instance.new("UIStroke")
+    dotStroke.Color = Color3.fromRGB(255, 50, 50)
+    dotStroke.Thickness = 2
+    dotStroke.Transparency = 0.3
+    dotStroke.Parent = statusDot
+    
+    -- Hover effect
+    button.MouseEnter:Connect(function()
+        local hoverTween = TweenService:Create(
+            buttonStroke,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+            {Transparency = 0.2}
+        )
+        hoverTween:Play()
+    end)
+    
+    button.MouseLeave:Connect(function()
+        local hoverTween = TweenService:Create(
+            buttonStroke,
+            TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+            {Transparency = 0.6}
+        )
+        hoverTween:Play()
+    end)
+    
+    -- Button click connection
+    button.MouseButton1Click:Connect(function()
+        callback()
+        
+        -- Update dot color and glow based on state
+        if name == "WalkspeedButton" then
+            if walkspeedEnabled then
+                statusDot.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+                dotStroke.Color = Color3.fromRGB(50, 255, 50)
+            else
+                statusDot.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+                dotStroke.Color = Color3.fromRGB(255, 50, 50)
+            end
+        elseif name == "JumpPowerButton" then
+            if jumpPowerEnabled then
+                statusDot.BackgroundColor3 = Color3.fromRGB(100, 255, 100)
+                dotStroke.Color = Color3.fromRGB(50, 255, 50)
+            else
+                statusDot.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+                dotStroke.Color = Color3.fromRGB(255, 50, 50)
+            end
+        end
+    end)
+    
+    return button
+end
+
+-- Create the three buttons
+local walkspeedButton = createToggleButton("WalkspeedButton", UDim2.new(0, 10, 0, 10), onWalkspeedToggle)
+walkspeedButton.Text = "   🏃 SPEED BOOST"
+
+local jumpPowerButton = createToggleButton("JumpPowerButton", UDim2.new(0, 10, 0, 50), onJumpPowerToggle)
+jumpPowerButton.Text = "   🚀 JUMP BOOST"
+
+local destroyButton = Instance.new("TextButton")
+destroyButton.Name = "DestroyButton"
+destroyButton.Size = UDim2.new(1, -20, 0, 35)
+destroyButton.Position = UDim2.new(0, 10, 0, 90)
+destroyButton.BackgroundColor3 = Color3.fromRGB(60, 80, 150)
+destroyButton.BorderSizePixel = 0
+destroyButton.Text = "💀 DESTROY GUI"
+destroyButton.TextColor3 = Color3.fromRGB(180, 210, 255)
+destroyButton.TextScaled = true
+destroyButton.Font = Enum.Font.GothamSemibold
+destroyButton.Parent = dropdownFrame
+
+-- Destroy button gradient
+local destroyGradient = Instance.new("UIGradient")
+destroyGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(80, 100, 180)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 60, 120))
+}
+destroyGradient.Rotation = 45
+destroyGradient.Parent = destroyButton
+
+local destroyCorner = Instance.new("UICorner")
+destroyCorner.CornerRadius = UDim.new(0, 8)
+destroyCorner.Parent = destroyButton
+
+-- Destroy button glow
+local destroyStroke = Instance.new("UIStroke")
+destroyStroke.Color = Color3.fromRGB(0, 150, 255)
+destroyStroke.Thickness = 1
+destroyStroke.Transparency = 0.6
+destroyStroke.Parent = destroyButton
+
+-- Destroy button hover effect
+destroyButton.MouseEnter:Connect(function()
+    local hoverTween = TweenService:Create(
+        destroyStroke,
+        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+        {Transparency = 0.2}
+    )
+    hoverTween:Play()
+end)
+
+destroyButton.MouseLeave:Connect(function()
+    local hoverTween = TweenService:Create(
+        destroyStroke,
+        TweenInfo.new(0.2, Enum.EasingStyle.Quad),
+        {Transparency = 0.6}
+    )
+    hoverTween:Play()
+end)
+
+destroyButton.MouseButton1Click:Connect(destroyGUI)
+
+-- Dropdown toggle functionality
+local function toggleDropdown()
+    isDropdownOpen = not isDropdownOpen
+    
+    local targetSize = isDropdownOpen and UDim2.new(1, 0, 0, 135) or UDim2.new(1, 0, 0, 0)
+    local headerText = isDropdownOpen and "⚡ PLAYER CONTROLS ⚡" or "⚡ PLAYER CONTROLS ⚡"
+    
+    headerButton.Text = headerText
+    
+    -- Add pulsing effect to header when opening
+    if isDropdownOpen then
+        local pulseIn = TweenService:Create(
+            headerStroke,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+            {Transparency = 0.1}
+        )
+        pulseIn:Play()
+    else
+        local pulseOut = TweenService:Create(
+            headerStroke,
+            TweenInfo.new(0.3, Enum.EasingStyle.Quad),
+            {Transparency = 0.5}
+        )
+        pulseOut:Play()
+    end
+    
+    local tween = TweenService:Create(
+        dropdownFrame,
+        TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out),
+        {Size = targetSize}
+    )
+    
+    tween:Play()
+end
+
+-- Connect header button to toggle dropdown
+headerButton.MouseButton1Click:Connect(toggleDropdown)
+
+-- Make the GUI draggable
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+local function update(input)
+    local delta = input.Position - dragStart
+    mainFrame.Position = UDim2.new(
+        startPos.X.Scale,
+        startPos.X.Offset + delta.X,
+        startPos.Y.Scale,
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+headerButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+headerButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+        if dragging then
+            update(input)
+        end
+    end
+end)
+
+print("🌟 Cool Blue Dropdown GUI loaded successfully! 🌟")
