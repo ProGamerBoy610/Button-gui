@@ -1,0 +1,250 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local Camera = workspace.CurrentCamera
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ESPGui"
+screenGui.Parent = playerGui
+
+-- Create main frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 200, 0, 100)
+mainFrame.Position = UDim2.new(0.5, -100, 0.5, -50)
+mainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- Add corner radius
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+-- Create title bar
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleBar
+
+-- Title text
+local titleText = Instance.new("TextLabel")
+titleText.Name = "TitleText"
+titleText.Size = UDim2.new(1, 0, 1, 0)
+titleText.Position = UDim2.new(0, 0, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "MM2 ESP"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextScaled = true
+titleText.Font = Enum.Font.GothamBold
+titleText.Parent = titleBar
+
+-- Create close button
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Position = UDim2.new(1, -25, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = titleBar
+
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(0, 5)
+closeButtonCorner.Parent = closeButton
+
+-- Create toggle button
+local toggleButton = Instance.new("TextButton")
+toggleButton.Name = "ToggleButton"
+toggleButton.Size = UDim2.new(0, 150, 0, 40)
+toggleButton.Position = UDim2.new(0.5, -75, 0.5, 5)
+toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+toggleButton.BorderSizePixel = 0
+toggleButton.Text = "SHOW ESP"
+toggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleButton.TextScaled = true
+toggleButton.Font = Enum.Font.GothamBold
+toggleButton.Parent = mainFrame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 8)
+buttonCorner.Parent = toggleButton
+
+-- ESP state
+local espEnabled = false
+local espTable = {}
+local renderConnection
+
+-- ESP Functions
+local function getRole(player)
+    local toolCheck = function(container)
+        if not container then return nil end
+        if container:FindFirstChild("Gun") then return "Sheriff" end
+        if container:FindFirstChild("Knife") then return "Murderer" end
+        return nil
+    end
+    return toolCheck(player:FindFirstChildOfClass("Backpack")) or toolCheck(player.Character) or "Innocent"
+end
+
+-- Create Drawing Box
+local function createBox()
+    local box = Drawing.new("Square")
+    box.Thickness = 1
+    box.Filled = false
+    box.Visible = false
+    return box
+end
+
+-- Setup ESPs for all players
+local function setupESP()
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player then
+            espTable[plr] = createBox()
+        end
+    end
+end
+
+-- Clean up ESP
+local function cleanupESP()
+    for plr, box in pairs(espTable) do
+        if box then
+            box:Remove()
+        end
+    end
+    espTable = {}
+end
+
+-- Update ESP
+local function updateESP()
+    if not espEnabled then return end
+    
+    for plr, box in pairs(espTable) do
+        local character = plr.Character
+        if character and character:FindFirstChild("HumanoidRootPart") and character:FindFirstChild("Head") then
+            local hrp = character.HumanoidRootPart
+            local head = character.Head
+            local vector, onScreen = Camera:WorldToViewportPoint(hrp.Position)
+            local headVec = Camera:WorldToViewportPoint(head.Position + Vector3.new(0, 0.5, 0))
+            local torsoVec = Camera:WorldToViewportPoint(hrp.Position - Vector3.new(0, 1.5, 0))
+            
+            if onScreen then
+                box.Visible = true
+                box.Size = Vector2.new(math.abs(headVec.X - torsoVec.X) * 2.5, math.abs(headVec.Y - torsoVec.Y) * 2)
+                box.Position = Vector2.new(vector.X - box.Size.X / 2, vector.Y - box.Size.Y / 2)
+                
+                local role = getRole(plr)
+                if role == "Sheriff" then
+                    box.Color = Color3.fromRGB(0, 255, 255)
+                elseif role == "Murderer" then
+                    box.Color = Color3.fromRGB(255, 0, 0)
+                else
+                    box.Color = Color3.fromRGB(255, 255, 255)
+                end
+            else
+                box.Visible = false
+            end
+        else
+            box.Visible = false
+        end
+    end
+end
+
+-- Toggle ESP function
+local function toggleESP()
+    if espEnabled then
+        -- Disable ESP
+        espEnabled = false
+        toggleButton.Text = "SHOW ESP"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+        
+        -- Clean up existing ESP
+        cleanupESP()
+        
+        -- Disconnect render connection
+        if renderConnection then
+            renderConnection:Disconnect()
+            renderConnection = nil
+        end
+        
+        print("ESP disabled")
+    else
+        -- Enable ESP
+        espEnabled = true
+        toggleButton.Text = "HIDE ESP"
+        toggleButton.BackgroundColor3 = Color3.fromRGB(255, 100, 100)
+        
+        -- Setup ESP
+        setupESP()
+        
+        -- Connect render loop
+        renderConnection = RunService.RenderStepped:Connect(updateESP)
+        
+        print("ESP enabled")
+    end
+end
+
+-- Player events for ESP
+Players.PlayerAdded:Connect(function(plr)
+    if espEnabled and plr ~= player then
+        espTable[plr] = createBox()
+    end
+end)
+
+Players.PlayerRemoving:Connect(function(plr)
+    if espTable[plr] then
+        espTable[plr]:Remove()
+        espTable[plr] = nil
+    end
+end)
+
+-- Button click event
+toggleButton.MouseButton1Click:Connect(function()
+    toggleESP()
+end)
+
+-- Close button event
+closeButton.MouseButton1Click:Connect(function()
+    -- Clean up ESP before closing
+    if espEnabled then
+        cleanupESP()
+        if renderConnection then
+            renderConnection:Disconnect()
+        end
+    end
+    screenGui.Enabled = false
+end)
+
+-- Hover effects for toggle button
+toggleButton.MouseEnter:Connect(function()
+    toggleButton.BackgroundColor3 = espEnabled and Color3.fromRGB(235, 80, 80) or Color3.fromRGB(30, 150, 235)
+end)
+
+toggleButton.MouseLeave:Connect(function()
+    toggleButton.BackgroundColor3 = espEnabled and Color3.fromRGB(255, 100, 100) or Color3.fromRGB(0, 170, 255)
+end)
+
+-- Hover effects for close button
+closeButton.MouseEnter:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(235, 60, 60)
+end)
+
+closeButton.MouseLeave:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+end)
+
+print("✅ MM2 ESP GUI loaded successfully!")
