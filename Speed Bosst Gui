@@ -1,0 +1,214 @@
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "SpeedGui"
+screenGui.Parent = playerGui
+
+-- Create main frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 200, 0, 100)
+mainFrame.Position = UDim2.new(0.5, -100, 0.5, -50)
+mainFrame.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
+mainFrame.BorderSizePixel = 0
+mainFrame.Active = true
+mainFrame.Draggable = true
+mainFrame.Parent = screenGui
+
+-- Add corner radius
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 10)
+corner.Parent = mainFrame
+
+-- Create title bar
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 30)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 10)
+titleCorner.Parent = titleBar
+
+-- Title text
+local titleText = Instance.new("TextLabel")
+titleText.Name = "TitleText"
+titleText.Size = UDim2.new(1, 0, 1, 0)
+titleText.Position = UDim2.new(0, 0, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "Speed"
+titleText.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleText.TextScaled = true
+titleText.Font = Enum.Font.GothamBold
+titleText.Parent = titleBar
+
+-- Create close button
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 20, 0, 20)
+closeButton.Position = UDim2.new(1, -25, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.Parent = titleBar
+
+local closeButtonCorner = Instance.new("UICorner")
+closeButtonCorner.CornerRadius = UDim.new(0, 5)
+closeButtonCorner.Parent = closeButton
+
+-- Create speed button
+local speedButton = Instance.new("TextButton")
+speedButton.Name = "SpeedButton"
+speedButton.Size = UDim2.new(0, 150, 0, 40)
+speedButton.Position = UDim2.new(0.5, -75, 0.5, 5)
+speedButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+speedButton.BorderSizePixel = 0
+speedButton.Text = "SPEED"
+speedButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+speedButton.TextScaled = true
+speedButton.Font = Enum.Font.GothamBold
+speedButton.Parent = mainFrame
+
+local buttonCorner = Instance.new("UICorner")
+buttonCorner.CornerRadius = UDim.new(0, 8)
+buttonCorner.Parent = speedButton
+
+-- Create status indicator (red dot)
+local statusIndicator = Instance.new("Frame")
+statusIndicator.Name = "StatusIndicator"
+statusIndicator.Size = UDim2.new(0, 12, 0, 12)
+statusIndicator.Position = UDim2.new(0, 10, 0, 10)
+statusIndicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red dot (off)
+statusIndicator.BorderSizePixel = 0
+statusIndicator.Parent = mainFrame
+
+local indicatorCorner = Instance.new("UICorner")
+indicatorCorner.CornerRadius = UDim.new(0, 6)
+indicatorCorner.Parent = statusIndicator
+
+-- Speed state
+local speedEnabled = false
+local originalSpeed = 16
+local speedConnection = nil
+
+-- Functions
+local function getCharacter()
+    return player.Character or player.CharacterAdded:Wait()
+end
+
+local function getHumanoid()
+    local character = getCharacter()
+    return character:FindFirstChild("Humanoid")
+end
+
+local function setWalkSpeed(speed)
+    local humanoid = getHumanoid()
+    if humanoid then
+        humanoid.WalkSpeed = speed
+    end
+end
+
+-- Callback function to continuously maintain speed
+local function speedCallback()
+    if speedEnabled then
+        local humanoid = getHumanoid()
+        if humanoid and humanoid.WalkSpeed ~= 45 then
+            humanoid.WalkSpeed = 45
+        end
+    end
+end
+
+-- Function to start repeating speed maintenance
+local function startSpeedLoop()
+    if speedConnection then
+        speedConnection:Disconnect()
+    end
+    speedConnection = RunService.Heartbeat:Connect(speedCallback)
+end
+
+-- Function to stop repeating speed maintenance
+local function stopSpeedLoop()
+    if speedConnection then
+        speedConnection:Disconnect()
+        speedConnection = nil
+    end
+end
+
+local function toggleSpeed()
+    if speedEnabled then
+        -- Turn off speed
+        stopSpeedLoop()
+        setWalkSpeed(originalSpeed)
+        speedButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+        statusIndicator.BackgroundColor3 = Color3.fromRGB(255, 0, 0) -- Red dot
+        speedEnabled = false
+        print("Speed disabled - WalkSpeed set to " .. originalSpeed)
+    else
+        -- Turn on speed
+        setWalkSpeed(45)
+        startSpeedLoop()
+        speedButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+        statusIndicator.BackgroundColor3 = Color3.fromRGB(0, 255, 0) -- Green dot
+        speedEnabled = true
+        print("Speed enabled - WalkSpeed set to 45 (repeating)")
+    end
+end
+
+-- Button click event
+speedButton.MouseButton1Click:Connect(function()
+    toggleSpeed()
+end)
+
+-- Close button event
+closeButton.MouseButton1Click:Connect(function()
+    stopSpeedLoop() -- Stop the speed loop before destroying
+    screenGui:Destroy()
+end)
+
+-- Hover effects for speed button
+speedButton.MouseEnter:Connect(function()
+    if speedEnabled then
+        speedButton.BackgroundColor3 = Color3.fromRGB(0, 235, 0)
+    else
+        speedButton.BackgroundColor3 = Color3.fromRGB(30, 150, 235)
+    end
+end)
+
+speedButton.MouseLeave:Connect(function()
+    if speedEnabled then
+        speedButton.BackgroundColor3 = Color3.fromRGB(0, 255, 0)
+    else
+        speedButton.BackgroundColor3 = Color3.fromRGB(0, 170, 255)
+    end
+end)
+
+-- Hover effects for close button
+closeButton.MouseEnter:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(235, 60, 60)
+end)
+
+closeButton.MouseLeave:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 80, 80)
+end)
+
+-- Character respawn handling
+player.CharacterAdded:Connect(function()
+    wait(1) -- Wait for character to fully load
+    if speedEnabled then
+        setWalkSpeed(45)
+        startSpeedLoop() -- Restart the speed loop for new character
+    end
+end)
+
+print("Speed GUI loaded successfully!")
