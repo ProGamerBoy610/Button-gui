@@ -1,0 +1,248 @@
+-- Sheckles GUI Script
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ShecklesGui"
+screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+screenGui.ResetOnSpawn = false
+
+-- Create main frame
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 350, 0, 200)
+mainFrame.Position = UDim2.new(0.5, -175, 0.5, -100)
+mainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 25)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Add corner radius and shadow effect
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 15)
+mainCorner.Parent = mainFrame
+
+-- Create shadow frame
+local shadowFrame = Instance.new("Frame")
+shadowFrame.Name = "ShadowFrame"
+shadowFrame.Size = UDim2.new(1, 4, 1, 4)
+shadowFrame.Position = UDim2.new(0, 2, 0, 2)
+shadowFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+shadowFrame.BackgroundTransparency = 0.7
+shadowFrame.BorderSizePixel = 0
+shadowFrame.ZIndex = mainFrame.ZIndex - 1
+shadowFrame.Parent = screenGui
+
+local shadowCorner = Instance.new("UICorner")
+shadowCorner.CornerRadius = UDim.new(0, 15)
+shadowCorner.Parent = shadowFrame
+
+-- Create title bar with gradient
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 50)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(255, 215, 0)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+-- Add gradient to title bar
+local titleGradient = Instance.new("UIGradient")
+titleGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 215, 0)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(218, 165, 32))
+}
+titleGradient.Rotation = 45
+titleGradient.Parent = titleBar
+
+-- Add corner radius to title bar
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 15)
+titleCorner.Parent = titleBar
+
+-- Fix title bar corners (only top corners)
+local titleBarBottom = Instance.new("Frame")
+titleBarBottom.Size = UDim2.new(1, 0, 0, 15)
+titleBarBottom.Position = UDim2.new(0, 0, 1, -15)
+titleBarBottom.BackgroundColor3 = Color3.fromRGB(218, 165, 32)
+titleBarBottom.BorderSizePixel = 0
+titleBarBottom.Parent = titleBar
+
+-- Create title label with money symbol
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "TitleLabel"
+titleLabel.Size = UDim2.new(1, -60, 1, 0)
+titleLabel.Position = UDim2.new(0, 15, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Sheckles"
+titleLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+titleLabel.TextScaled = true
+titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+titleLabel.Font = Enum.Font.SourceSansBold
+titleLabel.Parent = titleBar
+
+-- Create close button
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 40, 0, 40)
+closeButton.Position = UDim2.new(1, -45, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.SourceSansBold
+closeButton.Parent = titleBar
+
+-- Add corner radius to close button
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 20)
+closeCorner.Parent = closeButton
+
+-- Create input label
+local inputLabel = Instance.new("TextLabel")
+inputLabel.Name = "InputLabel"
+inputLabel.Size = UDim2.new(1, -30, 0, 25)
+inputLabel.Position = UDim2.new(0, 15, 0, 65)
+inputLabel.BackgroundTransparency = 1
+inputLabel.Text = "Enter Amount:"
+inputLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+inputLabel.TextScaled = true
+inputLabel.TextXAlignment = Enum.TextXAlignment.Left
+inputLabel.Font = Enum.Font.SourceSans
+inputLabel.Parent = mainFrame
+
+-- Create textbox for number input
+local textBox = Instance.new("TextBox")
+textBox.Name = "AmountTextBox"
+textBox.Size = UDim2.new(1, -30, 0, 35)
+textBox.Position = UDim2.new(0, 15, 0, 95)
+textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+textBox.BorderSizePixel = 0
+textBox.Text = "1000"
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+textBox.TextXAlignment = Enum.TextXAlignment.Center
+textBox.Font = Enum.Font.SourceSans
+textBox.TextSize = 18
+textBox.PlaceholderText = "Enter number here..."
+textBox.Parent = mainFrame
+
+-- Add corner radius to textbox
+local textBoxCorner = Instance.new("UICorner")
+textBoxCorner.CornerRadius = UDim.new(0, 8)
+textBoxCorner.Parent = textBox
+
+-- Add stroke to textbox
+local textBoxStroke = Instance.new("UIStroke")
+textBoxStroke.Color = Color3.fromRGB(255, 215, 0)
+textBoxStroke.Thickness = 2
+textBoxStroke.Parent = textBox
+
+-- Create get button
+local getButton = Instance.new("TextButton")
+getButton.Name = "GetButton"
+getButton.Size = UDim2.new(0, 120, 0, 35)
+getButton.Position = UDim2.new(0.5, -60, 0, 145)
+getButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
+getButton.BorderSizePixel = 0
+getButton.Text = "Get"
+getButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+getButton.TextScaled = true
+getButton.Font = Enum.Font.SourceSansBold
+getButton.Parent = mainFrame
+
+-- Add gradient to get button
+local getButtonGradient = Instance.new("UIGradient")
+getButtonGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(34, 139, 34)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 100, 0))
+}
+getButtonGradient.Rotation = 45
+getButtonGradient.Parent = getButton
+
+-- Add corner radius to get button
+local getCorner = Instance.new("UICorner")
+getCorner.CornerRadius = UDim.new(0, 8)
+getCorner.Parent = getButton
+
+-- Button functionalities
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+getButton.MouseButton1Click:Connect(function()
+    local inputText = textBox.Text
+    
+    -- Check if input is a valid number
+    local inputNumber = tonumber(inputText)
+    if inputNumber then
+        -- Run the script with the input number
+        local player = game:GetService("Players").LocalPlayer
+        local mainValue = inputNumber
+        
+        -- Change leaderstats Sheckles
+        local leaderstats = player:FindFirstChild("leaderstats")
+        local shecklesStat = leaderstats and leaderstats:FindFirstChild("Sheckles")
+        if shecklesStat and shecklesStat:IsA("NumberValue") then
+            shecklesStat.Value = mainValue
+            print("leaderstats Sheckles set to", mainValue)
+        else
+            warn("leaderstats Sheckles not found or invalid")
+        end
+        
+        -- Change PlayerGui UI val
+        local gui = player:FindFirstChild("PlayerGui"):FindFirstChild("Sheckles_UI")
+        local label = gui and gui:FindFirstChild("TextLabel")
+        local uiVal = label and label:FindFirstChild("val")
+        if uiVal and uiVal:IsA("ValueBase") then
+            uiVal.Value = mainValue
+            print("GUI val set to", mainValue)
+        else
+            warn("GUI val not found or invalid")
+        end
+        
+        -- Visual feedback
+        getButton.Text = "Success!"
+        getButton.BackgroundColor3 = Color3.fromRGB(0, 150, 0)
+        wait(1)
+        getButton.Text = "Get"
+        getButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
+    else
+        -- Show error for invalid input
+        textBox.BackgroundColor3 = Color3.fromRGB(139, 0, 0)
+        textBoxStroke.Color = Color3.fromRGB(255, 0, 0)
+        wait(1)
+        textBox.BackgroundColor3 = Color3.fromRGB(40, 40, 50)
+        textBoxStroke.Color = Color3.fromRGB(255, 215, 0)
+        warn("Invalid input: Please enter a valid number")
+    end
+end)
+
+-- Button hover effects
+closeButton.MouseEnter:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(255, 60, 100)
+end)
+
+closeButton.MouseLeave:Connect(function()
+    closeButton.BackgroundColor3 = Color3.fromRGB(220, 20, 60)
+end)
+
+getButton.MouseEnter:Connect(function()
+    getButton.BackgroundColor3 = Color3.fromRGB(50, 155, 50)
+end)
+
+getButton.MouseLeave:Connect(function()
+    getButton.BackgroundColor3 = Color3.fromRGB(34, 139, 34)
+end)
+
+-- Input validation (only allow numbers)
+textBox.Changed:Connect(function(property)
+    if property == "Text" then
+        local text = textBox.Text
+        -- Remove any non-numeric characters except decimal point
+        local filtered = text:gsub("[^%d%.]", "")
+        if filtered ~= text then
+            textBox.Text = filtered
+        end
+    end
+end)
+
+-- Make GUI visible
+screenGui.Enabled = true
