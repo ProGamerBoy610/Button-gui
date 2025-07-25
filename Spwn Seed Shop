@@ -1,0 +1,115 @@
+You said:
+-- Seed Stands Duplication Script for Roblox Executor
+-- Duplicates "Seed Stands" NPC at your position and teleports you up
+
+local player = game.Players.LocalPlayer
+local character = player.Character
+local humanoidRootPart = character.HumanoidRootPart
+
+-- Get the original NPCs
+local originalSeedStands = workspace.NPCS["Seed Stands"]
+local originalSam = workspace.NPCS.Sam
+
+-- Check if both exist
+if not originalSeedStands then
+    print("Error: Seed Stands NPC not found!")
+    return
+elseif not originalSam then
+    print("Error: Sam NPC not found!")
+    return
+else
+    print("Found both NPCs, attempting to clone...")
+    
+    -- Get your current position
+    local playerPosition = humanoidRootPart.Position
+    
+    -- Clone both NPCs
+    local clonedSeedStands = originalSeedStands:Clone()
+    local clonedSam = originalSam:Clone()
+    print("Both NPCs cloned successfully")
+    
+    -- Function to move all parts in the model
+    local function moveAllParts(model, targetPosition)
+        -- Calculate offset from original position
+        local originalPosition = Vector3.new(0, 0, 0)
+        local mainPart = nil
+        
+        -- Find the main part (HumanoidRootPart, Torso, or first BasePart)
+        if model:FindFirstChild("HumanoidRootPart") then
+            mainPart = model.HumanoidRootPart
+        elseif model:FindFirstChild("Torso") then
+            mainPart = model.Torso
+        elseif model.PrimaryPart then
+            mainPart = model.PrimaryPart
+        else
+            -- Find first BasePart
+            for _, child in pairs(model:GetDescendants()) do
+                if child:IsA("BasePart") then
+                    mainPart = child
+                    break
+                end
+            end
+        end
+        
+        if mainPart then
+            originalPosition = mainPart.Position
+            local offset = targetPosition - originalPosition
+            
+            -- Move all parts by the same offset
+            for _, descendant in pairs(model:GetDescendants()) do
+                if descendant:IsA("BasePart") then
+                    descendant.CFrame = descendant.CFrame + offset
+                end
+            end
+            print("Moved all parts using offset method")
+        else
+            print("No main part found to calculate offset")
+        end
+    end
+    
+    -- Parent both clones to workspace
+    clonedSeedStands.Parent = workspace
+    clonedSam.Parent = workspace
+    print("Both clones added to workspace")
+    
+    -- Wait a moment for them to load
+    wait(0.1)
+    
+    -- Move Seed Stands to your position
+    moveAllParts(clonedSeedStands, playerPosition)
+    
+    -- Move Sam slightly to the side (3 studs to the right)
+    local samPosition = playerPosition + Vector3.new(3, 0, 0)
+    moveAllParts(clonedSam, samPosition)
+    
+    -- Alternative method if the above doesn't work - try SetPrimaryPartCFrame
+    if clonedSeedStands.PrimaryPart then
+        clonedSeedStands:SetPrimaryPartCFrame(CFrame.new(playerPosition))
+        print("Also applied SetPrimaryPartCFrame to Seed Stands")
+    end
+    
+    if clonedSam.PrimaryPart then
+        clonedSam:SetPrimaryPartCFrame(CFrame.new(samPosition))
+        print("Also applied SetPrimaryPartCFrame to Sam")
+    end
+    
+    -- Teleport you up 10 studs to avoid getting stuck
+    humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 10, 0)
+    
+    print("Both NPCs duplicated and placed at your location!")
+    
+    -- Debug: List all parts that were moved
+    print("Parts in the Seed Stands model:")
+    for _, descendant in pairs(clonedSeedStands:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            print("- " .. descendant.Name .. " at position: " .. tostring(descendant.Position))
+        end
+    end
+    
+    print("Parts in the Sam model:")
+    for _, descendant in pairs(clonedSam:GetDescendants()) do
+        if descendant:IsA("BasePart") then
+            print("- " .. descendant.Name .. " at position: " .. tostring(descendant.Position))
+        end
+    end
+end
