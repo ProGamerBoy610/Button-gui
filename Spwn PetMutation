@@ -1,0 +1,65 @@
+-- Pet Mutation Machine Duplication Script (Y Offset Fixed)
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Get the original NPC
+local originalPetMachine = workspace.NPCS.PetMutationMachine
+
+if not originalPetMachine then
+    warn("Error: PetMutationMachine NPC not found!")
+    return
+else
+    print("Found PetMutationMachine NPC, attempting to clone...")
+
+    local playerPosition = humanoidRootPart.Position
+    local targetPosition = playerPosition + Vector3.new(0, -3, 0) -- ADJUSTED Y DOWN
+
+    local clonedPetMachine = originalPetMachine:Clone()
+    print("PetMutationMachine cloned successfully")
+
+    local function moveAllParts(model, targetPosition)
+        local mainPart = nil
+
+        if model:FindFirstChild("HumanoidRootPart") then
+            mainPart = model.HumanoidRootPart
+        elseif model:FindFirstChild("Torso") then
+            mainPart = model.Torso
+        elseif model.PrimaryPart then
+            mainPart = model.PrimaryPart
+        else
+            for _, child in pairs(model:GetDescendants()) do
+                if child:IsA("BasePart") then
+                    mainPart = child
+                    break
+                end
+            end
+        end
+
+        if mainPart then
+            local offset = targetPosition - mainPart.Position
+            for _, descendant in pairs(model:GetDescendants()) do
+                if descendant:IsA("BasePart") then
+                    descendant.CFrame = descendant.CFrame + offset
+                end
+            end
+            print("Moved PetMutationMachine to adjusted player position")
+        else
+            warn("No main part found in PetMutationMachine")
+        end
+    end
+
+    clonedPetMachine.Parent = workspace
+    wait(0.1)
+
+    moveAllParts(clonedPetMachine, targetPosition)
+
+    if clonedPetMachine.PrimaryPart then
+        clonedPetMachine:SetPrimaryPartCFrame(CFrame.new(targetPosition))
+    end
+
+    humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 10, 0)
+
+    print("PetMutationMachine duplicated and correctly placed")
+end
