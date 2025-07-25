@@ -1,0 +1,83 @@
+-- Sell Stands & Steven Duplication Script
+-- Duplicates "Sell Stands" and "Steven" NPCs at your position and teleports you up
+
+local player = game.Players.LocalPlayer
+local character = player.Character or player.CharacterAdded:Wait()
+local humanoidRootPart = character:WaitForChild("HumanoidRootPart")
+
+-- Get the original NPCs
+local originalSellStands = workspace.NPCS["Sell Stands"]
+local originalSteven = workspace.NPCS.Steven
+
+-- Check if both exist
+if not originalSellStands then
+    warn("Error: Sell Stands NPC not found!")
+    return
+elseif not originalSteven then
+    warn("Error: Steven NPC not found!")
+    return
+else
+    print("Found both NPCs, attempting to clone...")
+    
+    local playerPosition = humanoidRootPart.Position
+
+    local clonedSellStands = originalSellStands:Clone()
+    local clonedSteven = originalSteven:Clone()
+    print("Both NPCs cloned successfully")
+
+    local function moveAllParts(model, targetPosition)
+        local originalPosition = Vector3.new(0, 0, 0)
+        local mainPart = nil
+
+        if model:FindFirstChild("HumanoidRootPart") then
+            mainPart = model.HumanoidRootPart
+        elseif model:FindFirstChild("Torso") then
+            mainPart = model.Torso
+        elseif model.PrimaryPart then
+            mainPart = model.PrimaryPart
+        else
+            for _, child in pairs(model:GetDescendants()) do
+                if child:IsA("BasePart") then
+                    mainPart = child
+                    break
+                end
+            end
+        end
+
+        if mainPart then
+            originalPosition = mainPart.Position
+            local offset = targetPosition - originalPosition
+
+            for _, descendant in pairs(model:GetDescendants()) do
+                if descendant:IsA("BasePart") then
+                    descendant.CFrame = descendant.CFrame + offset
+                end
+            end
+            print("Moved all parts using offset method")
+        else
+            warn("No main part found to calculate offset")
+        end
+    end
+
+    clonedSellStands.Parent = workspace
+    clonedSteven.Parent = workspace
+    print("Clones parented to workspace")
+
+    wait(0.1)
+
+    moveAllParts(clonedSellStands, playerPosition)
+    local stevenPosition = playerPosition + Vector3.new(3, 0, 0)
+    moveAllParts(clonedSteven, stevenPosition)
+
+    if clonedSellStands.PrimaryPart then
+        clonedSellStands:SetPrimaryPartCFrame(CFrame.new(playerPosition))
+    end
+
+    if clonedSteven.PrimaryPart then
+        clonedSteven:SetPrimaryPartCFrame(CFrame.new(stevenPosition))
+    end
+
+    humanoidRootPart.CFrame = humanoidRootPart.CFrame + Vector3.new(0, 10, 0)
+
+    print("NPCs duplicated and moved to your location")
+end
