@@ -1,0 +1,27 @@
+-- Universal NPC Clone Remover Script
+-- Deletes all models in workspace that are duplicates of models inside workspace.NPCS
+
+local npcFolder = workspace:FindFirstChild("NPCS")
+
+if not npcFolder then
+    warn("NPCS folder not found!")
+    return
+end
+
+-- Store original NPC names to ignore
+local originalNPCs = {}
+for _, npc in pairs(npcFolder:GetChildren()) do
+    if npc:IsA("Model") then
+        originalNPCs[npc.Name] = npc
+    end
+end
+
+-- Loop through workspace and remove NPC clones
+for _, obj in pairs(workspace:GetChildren()) do
+    if obj:IsA("Model") and originalNPCs[obj.Name] and obj ~= originalNPCs[obj.Name] then
+        obj:Destroy()
+        print("Removed clone:", obj.Name)
+    end
+end
+
+print("✅ All NPC clones removed. Originals in workspace.NPCS are untouched.")
