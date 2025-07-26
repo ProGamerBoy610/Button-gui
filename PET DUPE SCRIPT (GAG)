@@ -1,0 +1,587 @@
+-- Roblox Executor Script: Modern Pet Duper GUI
+-- Run this with any Roblox executor
+
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+-- Create ScreenGui
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "ModernPetDuper"
+screenGui.Parent = playerGui
+screenGui.ResetOnSpawn = false
+
+-- Main Frame (smaller size)
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 320, 0, 220)
+mainFrame.Position = UDim2.new(0.5, -160, 0.5, -110)
+mainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 30)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+
+-- Gradient background
+local gradient = Instance.new("UIGradient")
+gradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(35, 35, 45)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(20, 20, 25))
+}
+gradient.Rotation = 45
+gradient.Parent = mainFrame
+
+-- Corner radius
+local corner = Instance.new("UICorner")
+corner.CornerRadius = UDim.new(0, 15)
+corner.Parent = mainFrame
+
+-- Glow effect
+local glow = Instance.new("ImageLabel")
+glow.Name = "Glow"
+glow.Size = UDim2.new(1, 20, 1, 20)
+glow.Position = UDim2.new(0, -10, 0, -10)
+glow.BackgroundTransparency = 1
+glow.Image = "rbxasset://textures/ui/GuiImagePlaceholder.png"
+glow.ImageColor3 = Color3.fromRGB(100, 255, 200)
+glow.ImageTransparency = 0.8
+glow.ZIndex = -1
+glow.Parent = mainFrame
+
+-- Title Bar
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 40)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = mainFrame
+
+local titleGradient = Instance.new("UIGradient")
+titleGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 75)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 50))
+}
+titleGradient.Rotation = 90
+titleGradient.Parent = titleBar
+
+local titleCorner = Instance.new("UICorner")
+titleCorner.CornerRadius = UDim.new(0, 15)
+titleCorner.Parent = titleBar
+
+-- Title with glow effect
+local titleLabel = Instance.new("TextLabel")
+titleLabel.Name = "Title"
+titleLabel.Size = UDim2.new(1, -80, 1, 0)
+titleLabel.Position = UDim2.new(0, 15, 0, 0)
+titleLabel.BackgroundTransparency = 1
+titleLabel.Text = "Pet Duper v1.77"
+titleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+titleLabel.TextScaled = true
+titleLabel.Font = Enum.Font.GothamBold
+titleLabel.TextStrokeTransparency = 0.8
+titleLabel.TextStrokeColor3 = Color3.fromRGB(100, 255, 200)
+titleLabel.Parent = titleBar
+
+-- Close Button (redesigned)
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 28, 0, 28)
+closeButton.Position = UDim2.new(1, -34, 0, 6)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 70, 70)
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextScaled = true
+closeButton.Font = Enum.Font.GothamBold
+closeButton.BorderSizePixel = 0
+closeButton.Parent = titleBar
+
+local closeGradient = Instance.new("UIGradient")
+closeGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 90, 90)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 50, 50))
+}
+closeGradient.Rotation = 45
+closeGradient.Parent = closeButton
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(1, 0)
+closeCorner.Parent = closeButton
+
+-- Minimize Button (redesigned)
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Name = "MinimizeButton"
+minimizeButton.Size = UDim2.new(0, 28, 0, 28)
+minimizeButton.Position = UDim2.new(1, -68, 0, 6)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 195, 0)
+minimizeButton.Text = "−"
+minimizeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+minimizeButton.TextScaled = true
+minimizeButton.Font = Enum.Font.GothamBold
+minimizeButton.BorderSizePixel = 0
+minimizeButton.Parent = titleBar
+
+local minimizeGradient = Instance.new("UIGradient")
+minimizeGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 215, 20)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 175, 0))
+}
+minimizeGradient.Rotation = 45
+minimizeGradient.Parent = minimizeButton
+
+local minimizeCorner = Instance.new("UICorner")
+minimizeCorner.CornerRadius = UDim.new(1, 0)
+minimizeCorner.Parent = minimizeButton
+
+-- Content Frame (contains all retractable elements)
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, 0, 1, -40)
+contentFrame.Position = UDim2.new(0, 0, 0, 40)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = mainFrame
+
+-- Subtitle with animation
+local subtitleLabel = Instance.new("TextLabel")
+subtitleLabel.Name = "Subtitle"
+subtitleLabel.Size = UDim2.new(1, -30, 0, 25)
+subtitleLabel.Position = UDim2.new(0, 15, 0, 10)
+subtitleLabel.BackgroundTransparency = 1
+subtitleLabel.Text = "BY FRYZER HUB"
+subtitleLabel.TextColor3 = Color3.fromRGB(240, 240, 255)
+subtitleLabel.TextScaled = true
+subtitleLabel.Font = Enum.Font.Gotham
+subtitleLabel.Parent = contentFrame
+
+-- Amount Label
+local amountLabel = Instance.new("TextLabel")
+amountLabel.Name = "AmountLabel"
+amountLabel.Size = UDim2.new(1, -30, 0, 20)
+amountLabel.Position = UDim2.new(0, 15, 0, 45)
+amountLabel.BackgroundTransparency = 1
+amountLabel.Text = "Amount to duplicate:"
+amountLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+amountLabel.TextScaled = true
+amountLabel.Font = Enum.Font.GothamMedium
+amountLabel.Parent = contentFrame
+
+-- Modern Text Box
+local textBox = Instance.new("TextBox")
+textBox.Name = "AmountTextBox"
+textBox.Size = UDim2.new(1, -30, 0, 35)
+textBox.Position = UDim2.new(0, 15, 0, 70)
+textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+textBox.Text = "1"
+textBox.TextColor3 = Color3.fromRGB(255, 255, 255) -- Bright white text
+textBox.TextScaled = true
+textBox.Font = Enum.Font.GothamBold
+textBox.BorderSizePixel = 0
+textBox.PlaceholderText = "Enter amount..."
+textBox.PlaceholderColor3 = Color3.fromRGB(200, 200, 200) -- Brighter placeholder
+textBox.TextStrokeTransparency = 0.8 -- Add text stroke for better visibility
+textBox.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
+textBox.Parent = contentFrame
+
+local textBoxGradient = Instance.new("UIGradient")
+textBoxGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(60, 60, 75)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(40, 40, 55))
+}
+textBoxGradient.Rotation = 90
+textBoxGradient.Parent = textBox
+
+local textBoxCorner = Instance.new("UICorner")
+textBoxCorner.CornerRadius = UDim.new(0, 8)
+textBoxCorner.Parent = textBox
+
+-- Glowing border for textbox
+local textBoxStroke = Instance.new("UIStroke")
+textBoxStroke.Color = Color3.fromRGB(100, 255, 200)
+textBoxStroke.Thickness = 1
+textBoxStroke.Transparency = 0.7
+textBoxStroke.Parent = textBox
+
+-- Modern Duplicate Button
+local dupeButton = Instance.new("TextButton")
+dupeButton.Name = "DupeButton"
+dupeButton.Size = UDim2.new(1, -30, 0, 40)
+dupeButton.Position = UDim2.new(0, 15, 0, 115)
+dupeButton.BackgroundColor3 = Color3.fromRGB(100, 255, 150)
+dupeButton.Text = "START DUPLICATION"
+dupeButton.TextColor3 = Color3.fromRGB(20, 20, 20)
+dupeButton.TextScaled = true
+dupeButton.Font = Enum.Font.GothamBold
+dupeButton.BorderSizePixel = 0
+dupeButton.Parent = contentFrame
+
+local dupeGradient = Instance.new("UIGradient")
+dupeGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(120, 255, 170)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(80, 255, 130))
+}
+dupeGradient.Rotation = 45
+dupeGradient.Parent = dupeButton
+
+local dupeCorner = Instance.new("UICorner")
+dupeCorner.CornerRadius = UDim.new(0, 10)
+dupeCorner.Parent = dupeButton
+
+-- Button glow effect
+local dupeStroke = Instance.new("UIStroke")
+dupeStroke.Color = Color3.fromRGB(100, 255, 150)
+dupeStroke.Thickness = 2
+dupeStroke.Transparency = 0.5
+dupeStroke.Parent = dupeButton
+
+-- Status Label
+local statusLabel = Instance.new("TextLabel")
+statusLabel.Name = "StatusLabel"
+statusLabel.Size = UDim2.new(1, -30, 0, 20)
+statusLabel.Position = UDim2.new(0, 15, 0, 165)
+statusLabel.BackgroundTransparency = 1
+statusLabel.Text = "Ready to duplicate"
+statusLabel.TextColor3 = Color3.fromRGB(200, 255, 220)
+statusLabel.TextScaled = true
+statusLabel.Font = Enum.Font.Gotham
+statusLabel.Parent = contentFrame
+
+-- Variables
+local isDuping = false
+local isMinimized = false
+local originalSize = UDim2.new(0, 320, 0, 220)
+local minimizedSize = UDim2.new(0, 320, 0, 40)
+
+-- Functions
+local function getCurrentTool()
+    local character = player.Character
+    if character then
+        return character:FindFirstChildOfClass("Tool")
+    end
+    return nil
+end
+
+local function isPet(tool)
+    if not tool then return false end
+    -- Check if the tool name contains "AGE" (case insensitive)
+    return string.find(string.upper(tool.Name), "AGE") ~= nil
+end
+
+local function validateNumber(input)
+    return string.match(input, "^%d*$") ~= nil
+end
+
+local function showNoPetMessage()
+    textBox.Text = "Only pets can be duped"
+    textBox.TextColor3 = Color3.fromRGB(255, 150, 150) -- Much brighter red
+    textBox.BackgroundColor3 = Color3.fromRGB(70, 70, 85) -- Lighter background
+    wait(2)
+    textBox.Text = "1"
+    textBox.TextColor3 = Color3.fromRGB(255, 255, 255) -- Bright white
+    textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60) -- Back to normal
+end
+
+local function duplicateItem(tool, amount)
+    if not tool then 
+        showNoPetMessage()
+        return 
+    end
+    
+    statusLabel.Text = "Duplicating " .. tool.Name .. "..."
+    statusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
+    
+    -- Button animation during duplication
+    dupeButton.Text = "DUPLICATING..."
+    dupeButton.BackgroundColor3 = Color3.fromRGB(255, 200, 100)
+    
+    for i = 1, amount do
+        wait(0.15) -- Slightly slower for style
+        
+        local clone = tool:Clone()
+        clone.Parent = player.Backpack
+        
+        statusLabel.Text = "Duplicated " .. i .. "/" .. amount .. " pets"
+        
+        if i == amount then
+            wait(0.5)
+            statusLabel.Text = "Duplication completed!"
+            statusLabel.TextColor3 = Color3.fromRGB(100, 255, 150)
+            
+            wait(2)
+            statusLabel.Text = "Ready to duplicate"
+            statusLabel.TextColor3 = Color3.fromRGB(150, 255, 180)
+        end
+    end
+    
+    -- Reset button
+    dupeButton.Text = "START DUPLICATION"
+    dupeButton.BackgroundColor3 = Color3.fromRGB(100, 255, 150)
+end
+
+-- Smooth animations
+local function animateMinimize()
+    local tweenInfo = TweenInfo.new(0.4, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+    
+    if isMinimized then
+        -- Minimize - hide ALL content elements individually
+        for _, child in pairs(contentFrame:GetChildren()) do
+            if child:IsA("GuiObject") then
+                TweenService:Create(child, tweenInfo, {
+                    Size = UDim2.new(child.Size.X.Scale, child.Size.X.Offset, 0, 0),
+                    Position = UDim2.new(child.Position.X.Scale, child.Position.X.Offset, 1, 0),
+                    BackgroundTransparency = 1,
+                    TextTransparency = 1
+                }):Play()
+            end
+        end
+        
+        -- Shrink main frame
+        TweenService:Create(mainFrame, tweenInfo, {Size = minimizedSize}):Play()
+        minimizeButton.Text = "+"
+        
+    else
+        -- Expand - grow main frame first, then show content
+        local frameTween = TweenService:Create(mainFrame, tweenInfo, {Size = originalSize})
+        frameTween:Play()
+        
+        frameTween.Completed:Connect(function()
+            wait(0.1) -- Small delay for smoother animation
+            
+            -- Show all content elements
+            TweenService:Create(subtitleLabel, tweenInfo, {
+                Size = UDim2.new(1, -30, 0, 25),
+                Position = UDim2.new(0, 15, 0, 10),
+                TextTransparency = 0
+            }):Play()
+            
+            TweenService:Create(amountLabel, tweenInfo, {
+                Size = UDim2.new(1, -30, 0, 20),
+                Position = UDim2.new(0, 15, 0, 45),
+                TextTransparency = 0
+            }):Play()
+            
+            TweenService:Create(textBox, tweenInfo, {
+                Size = UDim2.new(1, -30, 0, 35),
+                Position = UDim2.new(0, 15, 0, 70),
+                BackgroundTransparency = 0,
+                TextTransparency = 0
+            }):Play()
+            
+            TweenService:Create(dupeButton, tweenInfo, {
+                Size = UDim2.new(1, -30, 0, 40),
+                Position = UDim2.new(0, 15, 0, 115),
+                BackgroundTransparency = 0,
+                TextTransparency = 0
+            }):Play()
+            
+            TweenService:Create(statusLabel, tweenInfo, {
+                Size = UDim2.new(1, -30, 0, 20),
+                Position = UDim2.new(0, 15, 0, 165),
+                TextTransparency = 0
+            }):Play()
+        end)
+        
+        minimizeButton.Text = "−"
+    end
+end
+
+-- Event Connections
+textBox.Changed:Connect(function()
+    local text = textBox.Text
+    if text == "Only pets can be duped" or text == "No Pet found. Hold it in hand" then return end
+    
+    if not validateNumber(text) then
+        textBox.Text = string.gsub(text, "%D", "")
+    end
+    
+    if textBox.Text == "" then
+        textBox.Text = "1"
+    end
+end)
+
+dupeButton.MouseButton1Click:Connect(function()
+    if isDuping then return end
+    
+    local tool = getCurrentTool()
+    if not tool then
+        textBox.Text = "No Pet found. Hold it in hand"
+        textBox.TextColor3 = Color3.fromRGB(255, 150, 150)
+        textBox.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+        
+        statusLabel.Text = "No item in hand!"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        
+        wait(3)
+        textBox.Text = "1"
+        textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        statusLabel.Text = "Ready to duplicate"
+        statusLabel.TextColor3 = Color3.fromRGB(200, 255, 220)
+        return
+    end
+    
+    -- Check if it's a pet before proceeding
+    if not isPet(tool) then
+        textBox.Text = "Only pets can be duped"
+        textBox.TextColor3 = Color3.fromRGB(255, 150, 150)
+        textBox.BackgroundColor3 = Color3.fromRGB(70, 70, 85)
+        
+        statusLabel.Text = "X" .. tool.Name .. " is not a pet!"
+        statusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
+        
+        wait(3)
+        textBox.Text = "1"
+        textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+        textBox.BackgroundColor3 = Color3.fromRGB(50, 50, 60)
+        statusLabel.Text = "Ready to duplicate"
+        statusLabel.TextColor3 = Color3.fromRGB(200, 255, 220)
+        return
+    end
+    
+    local amount = tonumber(textBox.Text) or 1
+    if amount <= 0 then amount = 1 end
+    if amount > 100 then amount = 100 end
+    
+    isDuping = true
+    
+    spawn(function()
+        duplicateItem(tool, amount)
+        isDuping = false
+    end)
+end)
+
+closeButton.MouseButton1Click:Connect(function()
+    -- Fade out animation
+    local fadeInfo = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    local fadeTween = TweenService:Create(mainFrame, fadeInfo, {
+        Size = UDim2.new(0, 0, 0, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0)
+    })
+    fadeTween:Play()
+    fadeTween.Completed:Connect(function()
+        screenGui:Destroy()
+    end)
+end)
+
+minimizeButton.MouseButton1Click:Connect(function()
+    isMinimized = not isMinimized
+    animateMinimize()
+end)
+
+-- Hover effects
+closeButton.MouseEnter:Connect(function()
+    TweenService:Create(closeButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 32, 0, 32)}):Play()
+end)
+closeButton.MouseLeave:Connect(function()
+    TweenService:Create(closeButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 28, 0, 28)}):Play()
+end)
+
+minimizeButton.MouseEnter:Connect(function()
+    TweenService:Create(minimizeButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 32, 0, 32)}):Play()
+end)
+minimizeButton.MouseLeave:Connect(function()
+    TweenService:Create(minimizeButton, TweenInfo.new(0.2), {Size = UDim2.new(0, 28, 0, 28)}):Play()
+end)
+
+dupeButton.MouseEnter:Connect(function()
+    if not isDuping then
+        TweenService:Create(dupeStroke, TweenInfo.new(0.2), {Transparency = 0.2}):Play()
+    end
+end)
+dupeButton.MouseLeave:Connect(function()
+    TweenService:Create(dupeStroke, TweenInfo.new(0.2), {Transparency = 0.5}):Play()
+end)
+
+-- Make GUI draggable (UNIVERSAL - Mobile & PC)
+local dragging = false
+local dragStart = nil
+local startPos = nil
+
+local function startDragging(input)
+    -- Support both mouse and touch inputs
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragStart = input.Position
+        startPos = mainFrame.Position
+        
+        -- Visual feedback when dragging starts
+        titleBar.BackgroundColor3 = Color3.fromRGB(55, 55, 70)
+        
+        -- Prevent input from propagating to other UI elements
+        input.UserInputState = Enum.UserInputState.Begin
+    end
+end
+
+local function updateDragging(input)
+    -- Handle both mouse movement and touch movement
+    if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+        local delta = input.Position - dragStart
+        mainFrame.Position = UDim2.new(
+            startPos.X.Scale, 
+            startPos.X.Offset + delta.X, 
+            startPos.Y.Scale, 
+            startPos.Y.Offset + delta.Y
+        )
+    end
+end
+
+local function stopDragging(input)
+    -- Stop dragging for both mouse and touch release
+    if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and dragging then
+        dragging = false
+        -- Reset title bar color
+        titleBar.BackgroundColor3 = Color3.fromRGB(45, 45, 55)
+    end
+end
+
+-- Connect drag events to title bar for all input types
+titleBar.InputBegan:Connect(startDragging)
+titleBar.InputChanged:Connect(updateDragging)
+titleBar.InputEnded:Connect(stopDragging)
+
+-- Global input tracking for smooth dragging (PC & Mobile)
+UserInputService.InputChanged:Connect(updateDragging)
+UserInputService.InputEnded:Connect(stopDragging)
+
+-- Also make the title label draggable
+titleLabel.InputBegan:Connect(startDragging)
+titleLabel.InputChanged:Connect(updateDragging)
+titleLabel.InputEnded:Connect(stopDragging)
+
+-- Additional mobile touch support
+UserInputService.TouchStarted:Connect(function(touch, gameProcessed)
+    if not gameProcessed then
+        local hit = UserInputService:GetGuiObjectsAtPosition(touch.Position.X, touch.Position.Y)
+        for _, obj in pairs(hit) do
+            if obj == titleBar or obj == titleLabel then
+                startDragging(touch)
+                break
+            end
+        end
+    end
+end)
+
+UserInputService.TouchMoved:Connect(function(touch, gameProcessed)
+    if dragging then
+        updateDragging(touch)
+    end
+end)
+
+UserInputService.TouchEnded:Connect(function(touch, gameProcessed)
+    if dragging then
+        stopDragging(touch)
+    end
+end)
+
+-- Entrance animation
+mainFrame.Size = UDim2.new(0, 0, 0, 0)
+mainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+
+local entranceInfo = TweenInfo.new(0.6, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+local entranceTween = TweenService:Create(mainFrame, entranceInfo, {
+    Size = originalSize,
+    Position = UDim2.new(0.5, -160, 0.5, -110)
+})
+entranceTween:Play()
+
+print("🚀 Modern Pet Duper GUI loaded successfully!")
