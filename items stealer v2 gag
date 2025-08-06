@@ -1,0 +1,610 @@
+local Players = game:GetService("Players")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+local screenGui = Instance.new("ScreenGui")
+screenGui.Name = "FruitStealerGUI"
+screenGui.Parent = playerGui
+screenGui.ResetOnSpawn = false
+
+local mainFrame = Instance.new("Frame")
+mainFrame.Name = "MainFrame"
+mainFrame.Size = UDim2.new(0, 450, 0, 280)
+mainFrame.Position = UDim2.new(0.5, -225, 0.5, -140)
+mainFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+mainFrame.BorderSizePixel = 0
+mainFrame.Parent = screenGui
+mainFrame.Active = true
+mainFrame.Draggable = true
+
+local mainCorner = Instance.new("UICorner")
+mainCorner.CornerRadius = UDim.new(0, 3)
+mainCorner.Parent = mainFrame
+
+local outerGlow = Instance.new("UIStroke")
+outerGlow.Color = Color3.fromRGB(255, 0, 127)
+outerGlow.Thickness = 2
+outerGlow.Parent = mainFrame
+
+local innerFrame = Instance.new("Frame")
+innerFrame.Name = "InnerFrame"
+innerFrame.Size = UDim2.new(1, -4, 1, -4)
+innerFrame.Position = UDim2.new(0, 2, 0, 2)
+innerFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+innerFrame.BorderSizePixel = 0
+innerFrame.Parent = mainFrame
+
+local innerCorner = Instance.new("UICorner")
+innerCorner.CornerRadius = UDim.new(0, 2)
+innerCorner.Parent = innerFrame
+
+local innerGlow = Instance.new("UIStroke")
+innerGlow.Color = Color3.fromRGB(0, 255, 255)
+innerGlow.Thickness = 1
+innerGlow.Parent = innerFrame
+
+local titleBar = Instance.new("Frame")
+titleBar.Name = "TitleBar"
+titleBar.Size = UDim2.new(1, 0, 0, 45)
+titleBar.Position = UDim2.new(0, 0, 0, 0)
+titleBar.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+titleBar.BorderSizePixel = 0
+titleBar.Parent = innerFrame
+
+local titlePattern = Instance.new("Frame")
+titlePattern.Size = UDim2.new(1, 0, 1, 0)
+titlePattern.BackgroundColor3 = Color3.fromRGB(255, 0, 127)
+titlePattern.BackgroundTransparency = 0.9
+titlePattern.BorderSizePixel = 0
+titlePattern.Parent = titleBar
+
+local titleGradient = Instance.new("UIGradient")
+titleGradient.Color = ColorSequence.new{
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 0, 127)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 255, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(127, 0, 255))
+}
+titleGradient.Rotation = 90
+titleGradient.Parent = titlePattern
+
+local titleText = Instance.new("TextLabel")
+titleText.Name = "TitleText"
+titleText.Size = UDim2.new(1, -100, 1, 0)
+titleText.Position = UDim2.new(0, 15, 0, 0)
+titleText.BackgroundTransparency = 1
+titleText.Text = "◤ Fryzer Hub ◥"
+titleText.TextColor3 = Color3.fromRGB(0, 255, 255)
+titleText.TextSize = 16
+titleText.TextXAlignment = Enum.TextXAlignment.Left
+titleText.Font = Enum.Font.Code
+titleText.Parent = titleBar
+
+local titleStroke = Instance.new("UIStroke")
+titleStroke.Color = Color3.fromRGB(255, 0, 127)
+titleStroke.Thickness = 1
+titleStroke.Parent = titleText
+
+local minimizeButton = Instance.new("TextButton")
+minimizeButton.Name = "MinimizeButton"
+minimizeButton.Size = UDim2.new(0, 35, 0, 35)
+minimizeButton.Position = UDim2.new(1, -75, 0, 5)
+minimizeButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+minimizeButton.BorderSizePixel = 0
+minimizeButton.Text = "-"
+minimizeButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+minimizeButton.TextSize = 20
+minimizeButton.Font = Enum.Font.Code
+minimizeButton.Parent = titleBar
+
+local minCorner = Instance.new("UICorner")
+minCorner.CornerRadius = UDim.new(0, 2)
+minCorner.Parent = minimizeButton
+
+local minStroke = Instance.new("UIStroke")
+minStroke.Color = Color3.fromRGB(255, 215, 0)
+minStroke.Thickness = 1
+minStroke.Parent = minimizeButton
+
+local closeButton = Instance.new("TextButton")
+closeButton.Name = "CloseButton"
+closeButton.Size = UDim2.new(0, 35, 0, 35)
+closeButton.Position = UDim2.new(1, -40, 0, 5)
+closeButton.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
+closeButton.BorderSizePixel = 0
+closeButton.Text = "X"
+closeButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+closeButton.TextSize = 16
+closeButton.Font = Enum.Font.Code
+closeButton.Parent = titleBar
+
+local closeCorner = Instance.new("UICorner")
+closeCorner.CornerRadius = UDim.new(0, 2)
+closeCorner.Parent = closeButton
+
+local closeStroke = Instance.new("UIStroke")
+closeStroke.Color = Color3.fromRGB(255, 100, 100)
+closeStroke.Thickness = 1
+closeStroke.Parent = closeButton
+
+local contentFrame = Instance.new("Frame")
+contentFrame.Name = "ContentFrame"
+contentFrame.Size = UDim2.new(1, -10, 1, -55)
+contentFrame.Position = UDim2.new(0, 5, 0, 50)
+contentFrame.BackgroundTransparency = 1
+contentFrame.Parent = innerFrame
+
+local leftSection = Instance.new("Frame")
+leftSection.Name = "LeftSection"
+leftSection.Size = UDim2.new(0, 140, 1, 0)
+leftSection.Position = UDim2.new(0, 0, 0, 0)
+leftSection.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+leftSection.BorderSizePixel = 0
+leftSection.Parent = contentFrame
+
+local leftStroke = Instance.new("UIStroke")
+leftStroke.Color = Color3.fromRGB(127, 0, 255)
+leftStroke.Thickness = 1
+leftStroke.Parent = leftSection
+
+local playerHeader = Instance.new("Frame")
+playerHeader.Size = UDim2.new(1, 0, 0, 30)
+playerHeader.BackgroundColor3 = Color3.fromRGB(127, 0, 255)
+playerHeader.BackgroundTransparency = 0.8
+playerHeader.BorderSizePixel = 0
+playerHeader.Parent = leftSection
+
+local playerTitle = Instance.new("TextLabel")
+playerTitle.Size = UDim2.new(1, -10, 1, 0)
+playerTitle.Position = UDim2.new(0, 5, 0, 0)
+playerTitle.BackgroundTransparency = 1
+playerTitle.Text = "▸ TARGET SELECTION"
+playerTitle.TextColor3 = Color3.fromRGB(127, 0, 255)
+playerTitle.TextSize = 10
+playerTitle.TextXAlignment = Enum.TextXAlignment.Left
+playerTitle.Font = Enum.Font.Code
+playerTitle.Parent = playerHeader
+
+local playerDropdown = Instance.new("TextButton")
+playerDropdown.Name = "PlayerDropdown"
+playerDropdown.Size = UDim2.new(1, -10, 0, 35)
+playerDropdown.Position = UDim2.new(0, 5, 0, 35)
+playerDropdown.BackgroundColor3 = Color3.fromRGB(25, 25, 40)
+playerDropdown.BorderSizePixel = 0
+playerDropdown.Text = "[ SELECT_PLAYER ]"
+playerDropdown.TextColor3 = Color3.fromRGB(0, 255, 255)
+playerDropdown.TextSize = 12
+playerDropdown.Font = Enum.Font.Code
+playerDropdown.Parent = leftSection
+
+local dropStroke = Instance.new("UIStroke")
+dropStroke.Color = Color3.fromRGB(0, 255, 255)
+dropStroke.Thickness = 0.50
+dropStroke.Parent = playerDropdown
+
+local playerList = Instance.new("ScrollingFrame")
+playerList.Name = "PlayerList"
+playerList.Size = UDim2.new(1, -10, 0, 100)
+playerList.Position = UDim2.new(0, 5, 0, 75)
+playerList.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+playerList.BorderSizePixel = 0
+playerList.ScrollBarThickness = 2
+playerList.Visible = false
+playerList.Parent = leftSection
+
+local listStroke = Instance.new("UIStroke")
+listStroke.Color = Color3.fromRGB(255, 0, 127)
+listStroke.Thickness = 0.50
+listStroke.Parent = playerList
+
+local listLayout = Instance.new("UIListLayout")
+listLayout.SortOrder = Enum.SortOrder.Name
+listLayout.Padding = UDim.new(0, 1)
+listLayout.Parent = playerList
+
+local refreshButton = Instance.new("TextButton")
+refreshButton.Name = "RefreshButton"
+refreshButton.Size = UDim2.new(1, -10, 0, 35)
+refreshButton.Position = UDim2.new(0, 5, 1, -40)
+refreshButton.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+refreshButton.BorderSizePixel = 0
+refreshButton.Text = "◢ REFRESH_PLAYER ◣"
+refreshButton.TextColor3 = Color3.fromRGB(255, 165, 0)
+refreshButton.TextSize = 10
+refreshButton.Font = Enum.Font.Code
+refreshButton.Parent = leftSection
+
+local refreshStroke = Instance.new("UIStroke")
+refreshStroke.Color = Color3.fromRGB(255, 165, 0)
+refreshStroke.Thickness = 0.50
+refreshStroke.Parent = refreshButton
+
+local rightSection = Instance.new("Frame")
+rightSection.Name = "RightSection"
+rightSection.Size = UDim2.new(1, -150, 1, 0)
+rightSection.Position = UDim2.new(0, 145, 0, 0)
+rightSection.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+rightSection.BorderSizePixel = 0
+rightSection.Parent = contentFrame
+
+local rightStroke = Instance.new("UIStroke")
+rightStroke.Color = Color3.fromRGB(0, 255, 255)
+rightStroke.Thickness = 1
+rightStroke.Parent = rightSection
+
+local itemsHeader = Instance.new("Frame")
+itemsHeader.Size = UDim2.new(1, 0, 0, 30)
+itemsHeader.BackgroundColor3 = Color3.fromRGB(0, 255, 255)
+itemsHeader.BackgroundTransparency = 0.8
+itemsHeader.BorderSizePixel = 0
+itemsHeader.Parent = rightSection
+
+local itemsTitle = Instance.new("TextLabel")
+itemsTitle.Size = UDim2.new(0.7, 0, 1, 0)
+itemsTitle.Position = UDim2.new(0, 5, 0, 0)
+itemsTitle.BackgroundTransparency = 1
+itemsTitle.Text = "▸ INVENTORY SCAN"
+itemsTitle.TextColor3 = Color3.fromRGB(0, 255, 255)
+itemsTitle.TextSize = 10
+itemsTitle.TextXAlignment = Enum.TextXAlignment.Left
+itemsTitle.Font = Enum.Font.Code
+itemsTitle.Parent = itemsHeader
+
+local itemsCounter = Instance.new("TextLabel")
+itemsCounter.Size = UDim2.new(0.3, -5, 1, 0)
+itemsCounter.Position = UDim2.new(0.7, 0, 0, 0)
+itemsCounter.BackgroundTransparency = 1
+itemsCounter.Text = "[0]"
+itemsCounter.TextColor3 = Color3.fromRGB(255, 0, 127)
+itemsCounter.TextSize = 12
+itemsCounter.TextXAlignment = Enum.TextXAlignment.Right
+itemsCounter.Font = Enum.Font.Code
+itemsCounter.Parent = itemsHeader
+
+local itemsScrollFrame = Instance.new("ScrollingFrame")
+itemsScrollFrame.Name = "ItemsScrollFrame"
+itemsScrollFrame.Size = UDim2.new(1, -8, 1, -75)
+itemsScrollFrame.Position = UDim2.new(0, 4, 0, 35)
+itemsScrollFrame.BackgroundColor3 = Color3.fromRGB(8, 8, 15)
+itemsScrollFrame.BorderSizePixel = 0
+itemsScrollFrame.ScrollBarThickness = 2
+itemsScrollFrame.Parent = rightSection
+
+local scrollStroke = Instance.new("UIStroke")
+scrollStroke.Color = Color3.fromRGB(127, 0, 255)
+scrollStroke.Thickness = 1
+scrollStroke.Parent = itemsScrollFrame
+
+local itemsListLayout = Instance.new("UIListLayout")
+itemsListLayout.SortOrder = Enum.SortOrder.Name
+itemsListLayout.Padding = UDim.new(0, 2)
+itemsListLayout.Parent = itemsScrollFrame
+
+local stealAllButton = Instance.new("TextButton")
+stealAllButton.Name = "Steal All Button"
+stealAllButton.Size = UDim2.new(1, -8, 0, 35)
+stealAllButton.Position = UDim2.new(0, 4, 1, -40)
+stealAllButton.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+stealAllButton.BorderSizePixel = 0
+stealAllButton.Text = "◤ COPY_ALL ◥"
+stealAllButton.TextColor3 = Color3.fromRGB(255, 0, 127)
+stealAllButton.TextSize = 12
+stealAllButton.Font = Enum.Font.Code
+stealAllButton.Parent = rightSection
+
+local stealStroke = Instance.new("UIStroke")
+stealStroke.Color = Color3.fromRGB(255, 0, 127)
+stealStroke.Thickness = 0.80
+stealStroke.Parent = stealAllButton
+
+local miniBar = Instance.new("Frame")
+miniBar.Name = "MiniBar"
+miniBar.Size = UDim2.new(0, 200, 0, 30)
+miniBar.Position = UDim2.new(0.5, -100, 0.1, 0)
+miniBar.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
+miniBar.BorderSizePixel = 0
+miniBar.Parent = screenGui
+miniBar.Visible = false
+miniBar.Active = true
+miniBar.Draggable = true
+
+local miniCorner = Instance.new("UICorner")
+miniCorner.CornerRadius = UDim.new(0, 3)
+miniCorner.Parent = miniBar
+
+local miniStroke = Instance.new("UIStroke")
+miniStroke.Color = Color3.fromRGB(0, 255, 255)
+miniStroke.Thickness = 1
+miniStroke.Parent = miniBar
+
+local miniText = Instance.new("TextLabel")
+miniText.Size = UDim2.new(1, -35, 1, 0)
+miniText.Position = UDim2.new(0, 5, 0, 0)
+miniText.BackgroundTransparency = 1
+miniText.Text = "◤ FRUIT STEALER ◥"
+miniText.TextColor3 = Color3.fromRGB(0, 255, 255)
+miniText.TextSize = 12
+miniText.TextXAlignment = Enum.TextXAlignment.Left
+miniText.Font = Enum.Font.Code
+miniText.Parent = miniBar
+
+local restoreButton = Instance.new("TextButton")
+restoreButton.Size = UDim2.new(0, 25, 0, 25)
+restoreButton.Position = UDim2.new(1, -30, 0, 2.5)
+restoreButton.BackgroundColor3 = Color3.fromRGB(255, 165, 0)
+restoreButton.BorderSizePixel = 0
+restoreButton.Text = "X"
+restoreButton.TextColor3 = Color3.fromRGB(0, 0, 0)
+restoreButton.TextSize = 14
+restoreButton.Font = Enum.Font.Code
+restoreButton.Parent = miniBar
+
+local restoreCorner = Instance.new("UICorner")
+restoreCorner.CornerRadius = UDim.new(0, 2)
+restoreCorner.Parent = restoreButton
+
+local currentSelectedPlayer = nil
+local dropdownOpen = false
+
+local function createPlayerOption(targetPlayer)
+    local option = Instance.new("TextButton")
+    option.Name = "Option_" .. targetPlayer.Name
+    option.Size = UDim2.new(1, -6, 0, 25)
+    option.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+    option.BorderSizePixel = 0
+    option.Text = "▸ " .. targetPlayer.Name
+    option.TextColor3 = Color3.fromRGB(0, 255, 255)
+    option.TextSize = 10
+    option.TextXAlignment = Enum.TextXAlignment.Left
+    option.Font = Enum.Font.Code
+    option.Parent = playerList
+    
+    local optionStroke = Instance.new("UIStroke")
+    optionStroke.Color = Color3.fromRGB(127, 0, 255)
+    optionStroke.Thickness = 1
+    optionStroke.Parent = option
+    
+    option.MouseEnter:Connect(function()
+        option.BackgroundColor3 = Color3.fromRGB(127, 0, 255)
+        option.TextColor3 = Color3.fromRGB(255, 255, 255)
+    end)
+    
+    option.MouseLeave:Connect(function()
+        option.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+        option.TextColor3 = Color3.fromRGB(0, 255, 255)
+    end)
+    
+    option.MouseButton1Click:Connect(function()
+        selectPlayer(targetPlayer)
+        toggleDropdown()
+    end)
+    
+    return option
+end
+
+function selectPlayer(targetPlayer)
+    currentSelectedPlayer = targetPlayer
+    playerDropdown.Text = "[ " .. targetPlayer.Name:upper() .. " ]"
+    itemsTitle.Text = "▸ " .. targetPlayer.Name:upper() .. "_SCAN"
+    refreshItems()
+end
+
+function toggleDropdown()
+    dropdownOpen = not dropdownOpen
+    playerList.Visible = dropdownOpen
+end
+
+local function createItemFrame(tool, index)
+    local itemFrame = Instance.new("Frame")
+    itemFrame.Name = "ItemFrame_" .. index
+    itemFrame.Size = UDim2.new(1, -8, 0, 28)
+    itemFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+    itemFrame.BorderSizePixel = 0
+    itemFrame.Parent = itemsScrollFrame
+    
+    local itemStroke = Instance.new("UIStroke")
+    itemStroke.Color = Color3.fromRGB(255, 0, 127)
+    itemStroke.Thickness = 1
+    itemStroke.Parent = itemFrame
+    
+    local toolName = Instance.new("TextLabel")
+    toolName.Name = "ToolName"
+    toolName.Size = UDim2.new(1, -70, 1, 0)
+    toolName.Position = UDim2.new(0, 8, 0, 0)
+    toolName.BackgroundTransparency = 1
+    toolName.Text = "▸ " .. tool.Name:upper()
+    toolName.TextColor3 = Color3.fromRGB(255, 255, 255)
+    toolName.TextSize = 10
+    toolName.TextXAlignment = Enum.TextXAlignment.Left
+    toolName.Font = Enum.Font.Code
+    toolName.Parent = itemFrame
+    
+    local stealButton = Instance.new("TextButton")
+    stealButton.Name = "StealButton"
+    stealButton.Size = UDim2.new(0, 60, 0, 22)
+    stealButton.Position = UDim2.new(1, -65, 0, 3)
+    stealButton.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+    stealButton.BorderSizePixel = 0
+    stealButton.Text = "STEAL"
+    stealButton.TextColor3 = Color3.fromRGB(0, 255, 255)
+    stealButton.TextSize = 9
+    stealButton.Font = Enum.Font.Code
+    stealButton.Parent = itemFrame
+    
+    local stealStroke = Instance.new("UIStroke")
+    stealStroke.Color = Color3.fromRGB(0, 255, 255)
+    stealStroke.Thickness = 0.50
+    stealStroke.Parent = stealButton
+    
+    stealButton.MouseButton1Click:Connect(function()
+        local success, err = pcall(function()
+            local clonedTool = tool:Clone()
+            clonedTool.Parent = player.Backpack
+        end)
+        
+        if success then
+            stealButton.Text = "OK"
+            stealButton.BackgroundColor3 = Color3.fromRGB(0, 100, 0)
+            stealStroke.Color = Color3.fromRGB(0, 255, 0)
+            wait(1)
+            stealButton.Text = "COPY"
+            stealButton.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+            stealStroke.Color = Color3.fromRGB(0, 255, 255)
+        else
+            stealButton.Text = "ERR"
+            stealButton.BackgroundColor3 = Color3.fromRGB(100, 0, 0)
+            stealStroke.Color = Color3.fromRGB(255, 0, 0)
+            wait(1)
+            stealButton.Text = "COPY"
+            stealButton.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+            stealStroke.Color = Color3.fromRGB(0, 255, 255)
+        end
+    end)
+    
+    return itemFrame
+end
+
+function refreshItems()
+    for _, child in pairs(itemsScrollFrame:GetChildren()) do
+        if child:IsA("Frame") and child.Name:match("ItemFrame_") then
+            child:Destroy()
+        end
+    end
+    
+    if not currentSelectedPlayer then
+        itemsCounter.Text = "[0]"
+        return
+    end
+    
+    local backpack = currentSelectedPlayer:FindFirstChild("Backpack")
+    if not backpack then
+        itemsCounter.Text = "[NULL]"
+        return
+    end
+    
+    local tools = {}
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") or item:IsA("HopperBin") then
+            table.insert(tools, item)
+        end
+    end
+    
+    for i, tool in ipairs(tools) do
+        createItemFrame(tool, i)
+    end
+    
+    itemsCounter.Text = "[" .. #tools .. "]"
+    itemsScrollFrame.CanvasSize = UDim2.new(0, 0, 0, #tools * 30)
+end
+
+local function refreshPlayerList()
+    for _, child in pairs(playerList:GetChildren()) do
+        if child:IsA("TextButton") then
+            child:Destroy()
+        end
+    end
+    
+    local players = Players:GetPlayers()
+    for _, p in ipairs(players) do
+        createPlayerOption(p)
+    end
+    
+    playerList.CanvasSize = UDim2.new(0, 0, 0, #players * 26)
+end
+
+local function stealAllItems()
+    if not currentSelectedPlayer then return end
+    
+    local backpack = currentSelectedPlayer:FindFirstChild("Backpack")
+    if not backpack then return end
+    
+    local tools = {}
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") or item:IsA("HopperBin") then
+            table.insert(tools, item)
+        end
+    end
+    
+    local stolenCount = 0
+    for _, tool in ipairs(tools) do
+        local success, err = pcall(function()
+            local clonedTool = tool:Clone()
+            clonedTool.Parent = player.Backpack
+            stolenCount = stolenCount + 1
+        end)
+    end
+    
+    stealAllButton.Text = "◤ COPIED_" .. stolenCount .. " ◥"
+    stealAllButton.BackgroundColor3 = Color3.fromRGB(0, 80, 0)
+    stealStroke.Color = Color3.fromRGB(0, 255, 0)
+    wait(2)
+    stealAllButton.Text = "◤ STEAL_ALL ◥"
+    stealAllButton.BackgroundColor3 = Color3.fromRGB(50, 50, 80)
+    stealStroke.Color = Color3.fromRGB(255, 0, 127)
+end
+
+closeButton.MouseButton1Click:Connect(function()
+    screenGui:Destroy()
+end)
+
+minimizeButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    miniBar.Visible = true
+end)
+
+restoreButton.MouseButton1Click:Connect(function()
+    mainFrame.Visible = true
+    miniBar.Visible = false
+end)
+
+playerDropdown.MouseButton1Click:Connect(function()
+    toggleDropdown()
+end)
+
+refreshButton.MouseButton1Click:Connect(function()
+    refreshPlayerList()
+    refreshItems()
+end)
+
+stealAllButton.MouseButton1Click:Connect(function()
+    stealAllItems()
+end)
+
+screenGui.MouseButton1Click:Connect(function()
+    if dropdownOpen then
+        toggleDropdown()
+    end
+end)
+
+Players.PlayerAdded:Connect(function()
+    wait(1)
+    refreshPlayerList()
+end)
+
+Players.PlayerRemoving:Connect(function(leavingPlayer)
+    if currentSelectedPlayer == leavingPlayer then
+        currentSelectedPlayer = nil
+        itemsCounter.Text = "[0]"
+        itemsTitle.Text = "▸ INVENTORY_SCAN"
+        refreshItems()
+    end
+    refreshPlayerList()
+end)
+
+refreshPlayerList()
+
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    
+    if input.KeyCode == Enum.KeyCode.F3 then
+        if mainFrame.Visible then
+            mainFrame.Visible = false
+            miniBar.Visible = true
+        else
+            mainFrame.Visible = true
+            miniBar.Visible = false
+        end
+    end
+end)
