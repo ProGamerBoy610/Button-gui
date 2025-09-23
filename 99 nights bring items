@@ -1,0 +1,417 @@
+-- Bring all items
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local HttpService = game:GetService("HttpService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+-- System variables
+local isRunning = false
+local originalPlayerPosition
+local originalCameraSubject
+local searchConnection
+local childAddedConnection
+local moreSpeedEnabled = false
+local inputConnections = {}
+local cameraPart = nil
+local broughtItems = {}  -- Track brought items to avoid re-bringing
+
+-- Helper functions
+local function disableInputs()
+    for _, connection in pairs(inputConnections) do
+        connection:Disconnect()
+    end
+    inputConnections = {}
+    
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        local humanoid = LocalPlayer.Character.Humanoid
+        humanoid.WalkSpeed = 0
+        humanoid.JumpPower = 0
+        humanoid.JumpHeight = 0
+    end
+end
+
+local function enableInputs()
+    for _, connection in pairs(inputConnections) do
+        connection:Disconnect()
+    end
+    inputConnections = {}
+    
+    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+        local humanoid = LocalPlayer.Character.Humanoid
+        humanoid.WalkSpeed = 16
+        humanoid.JumpPower = 50
+        humanoid.JumpHeight = 7.2
+    end
+end
+
+local function getItemPosition(item)
+    if item:IsA("Model") then
+        return item.PrimaryPart and item.PrimaryPart.Position or 
+               (item:FindFirstChildWhichIsA("BasePart") and item:FindFirstChildWhichIsA("BasePart").Position)
+    elseif item:IsA("BasePart") then
+        return item.Position
+    end
+    return nil
+end
+
+local function findAllItems()
+    local foundItems = {}
+    
+    if workspace:FindFirstChild("Items") then
+        for _, item in pairs(workspace.Items:GetChildren()) do
+            if item.Parent then
+                table.insert(foundItems, item)
+            end
+        end
+    end
+    
+    return foundItems
+end
+
+local function fastDragItem(item)
+    if not originalPlayerPosition then 
+        print("❌ No original position")
+        return false 
+    end
+    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then 
+        print("❌ No character")
+        return false 
+    end
+    if not item.Parent then
+        print("❌ Item", item.Name, "no longer exists")
+        return false
+    end
+    
+    local success, remoteEvents = pcall(function()
+        return ReplicatedStorage:WaitForChild("RemoteEvents", 2)
+    end)
+    
+    if not success or not remoteEvents then
+        print("❌ RemoteEvents not found in ReplicatedStorage")
+        return false
+    end
+    
+    local dragEvent = remoteEvents:FindFirstChild("RequestStartDraggingItem")
+    local stopDragEvent = remoteEvents:FindFirstChild("StopDraggingItem")
+    
+    if not dragEvent or not stopDragEvent then
+        print("❌ Drag events not found:", dragEvent and "✅" or "❌", "RequestStartDraggingItem", stopDragEvent and "✅" or "❌", "StopDraggingItem")
+        return false
+    end
+    
+    local hrp = LocalPlayer.Character.HumanoidRootPart
+    local itemPos = getItemPosition(item)
+    if not itemPos then 
+        print("❌ Could not get item position for", item.Name)
+        return false 
+    end
+    
+    print("🎯 Starting to bring", item.Name, "from position", itemPos)
+    
+    local teleportHeight = moreSpeedEnabled and 8 or 15
+    local approachHeight = moreSpeedEnabled and 0.5 or 1.5
+    local moveHeight = moreSpeedEnabled and 3 or 6
+    local steps = moreSpeedEnabled and 2 or 4
+    local stepDelay = moreSpeedEnabled and 0.02 or 0.05
+    local waitTimes = moreSpeedEnabled and 0.05 or 0.1
+    
+    hrp.CFrame = CFrame.new(itemPos + Vector3.new(0, teleportHeight, 0))
+    task.wait(waitTimes)
+    
+    hrp.CFrame = CFrame.new(itemPos + Vector3.new(0, approachHeight, 0))
+    task.wait(waitTimes * 0.5)
+    
+    local dragSuccess, dragError = pcall(function() 
+        dragEvent:FireServer(item) 
+        print("🔗 Started dragging", item.Name)
+    end)
+    
+    if not dragSuccess then
+        print("❌ Failed to start dragging", item.Name, "Error:", dragError)
+        return false
+    end
+    
+    task.wait(waitTimes * 0.7)
+    
+    local itemPart = item:IsA("Model") and (item.PrimaryPart or item:FindFirstChildWhichIsA("BasePart")) or item
+    
+    if itemPart then
+        local offset = Vector3.new(math.random(-2,2), 15 + math.random(0,3), math.random(-2,2))
+        local targetPos = originalPlayerPosition.Position + offset
+        
+        for i = 1, steps do
+            if not isRunning then break end
+            
+            local alpha = i / steps
+            local newPos = itemPos:Lerp(targetPos, alpha)
+            
+            hrp.CFrame = CFrame.new(newPos + Vector3.new(0, moveHeight, 0))
+            
+            pcall(function()
+                if itemPart.Parent then
+                    itemPart.CFrame = CFrame.new(newPos)
+                end
+            end)
+            
+            task.wait(stepDelay)
+        end
+        
+        hrp.CFrame = CFrame.new(targetPos + Vector3.new(0, moveHeight, 0))
+        pcall(function()
+            if itemPart.Parent then
+                itemPart.CFrame = CFrame.new(targetPos)
+            end
+        end)
+        
+        task.wait(waitTimes * 0.5)
+    end
+    
+    local stopSuccess, stopError = pcall(function() 
+        stopDragEvent:FireServer(item) 
+        print("🔓 Stopped dragging", item.Name)
+    end)
+    
+    if stopSuccess then
+        print("✅", item.Name, "brought successfully to original position!")
+        return true
+    else
+        print("❌ Failed to stop dragging", item.Name, "Error:", stopError)
+        return false
+    end
+end
+
+local function bringNewItem(item)
+    if not isRunning then return end
+    
+    local itemPos = getItemPosition(item)
+    if itemPos and originalPlayerPosition then
+        local distance = (itemPos - originalPlayerPosition.Position).Magnitude
+        local minDistance = moreSpeedEnabled and 10 or 15
+        
+        if not broughtItems[item] and distance > minDistance then
+            local ok, result = pcall(fastDragItem, item)
+            if ok and result then
+                print("✅ Brought item: " .. item.Name)
+                broughtItems[item] = true
+            end
+        end
+    end
+end
+
+local function createUI(Tab, Rayfield)
+    local SpeedToggle = Tab:CreateToggle({
+        Name = "More Speed Mode",
+        Info = "Enable for much faster bringing with optimized timings and reduced steps",
+        CurrentValue = false,
+        Flag = "SpeedModeToggle",
+        Callback = function(Value)
+            moreSpeedEnabled = Value
+            print("More Speed Mode: " .. tostring(Value))
+            Rayfield:Notify({
+                Title = Value and "⚡ More Speed ON" or "🐌 Normal Mode",
+                Content = Value and "Bringing will be much faster!" or "Bringing will be more stable.",
+                Duration = 3,
+                Image = 4483362458
+            })
+        end,
+    })
+
+    local BringAllToggle = Tab:CreateToggle({
+        Name = "Bring All Items",
+        Info = "Automatically bring all items from workspace.Items (real-time detection)",
+        CurrentValue = false,
+        Flag = "BringAllToggle",
+        Callback = function(Value)
+            print("Bring All: " .. tostring(Value))
+            
+            if Value then
+                if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    Rayfield:Notify({
+                        Title = "Character Error",
+                        Content = "Character not found! Please respawn and try again.",
+                        Duration = 5,
+                        Image = 4483362458
+                    })
+                    return
+                end
+                
+                originalPlayerPosition = LocalPlayer.Character.HumanoidRootPart.CFrame
+                print("📍 Original position saved")
+                
+                broughtItems = {}
+                
+                if not isRunning then
+                    isRunning = true
+                    
+                    local camera = workspace.CurrentCamera
+                    originalCameraSubject = camera.CameraSubject
+                    
+                    cameraPart = Instance.new("Part")
+                    cameraPart.Name = "FixedCameraPart"
+                    cameraPart.Anchored = true
+                    cameraPart.CanCollide = false
+                    cameraPart.Transparency = 1
+                    cameraPart.CFrame = originalPlayerPosition + Vector3.new(0, 10, 10)
+                    cameraPart.Parent = workspace
+                    camera.CameraSubject = cameraPart
+                    
+                    disableInputs()
+                    
+                    local foundItems = findAllItems()
+                    if #foundItems > 0 then
+                        print("Initial scan: Found " .. #foundItems .. " items")
+                        spawn(function()
+                            for _, item in pairs(foundItems) do
+                                if not isRunning then break end
+                                bringNewItem(item)
+                                task.wait(moreSpeedEnabled and 0.3 or 0.7)
+                            end
+                        end)
+                    end
+                    
+                    if workspace:FindFirstChild("Items") then
+                        childAddedConnection = workspace.Items.ChildAdded:Connect(function(newItem)
+                            if isRunning then
+                                task.delay(0.1, bringNewItem, newItem)
+                            end
+                        end)
+                    end
+                    
+                    searchConnection = RunService.Heartbeat:Connect(function()
+                        if not isRunning then return end
+                        
+                        if tick() % 5 < 0.1 then
+                            local foundItems = findAllItems()
+                            if #foundItems > 0 then
+                                spawn(function()
+                                    for _, item in pairs(foundItems) do
+                                        if not isRunning then break end
+                                        bringNewItem(item)
+                                    end
+                                end)
+                            end
+                        end
+                    end)
+                    
+                    Rayfield:Notify({
+                        Title = "🎮 Bring All Active",
+                        Content = "Real-time bringing of all items from workspace.Items!",
+                        Duration = 5,
+                        Image = 4483362458
+                    })
+                end
+            else
+                if isRunning then
+                    isRunning = false
+                    
+                    if searchConnection then
+                        searchConnection:Disconnect()
+                        searchConnection = nil
+                    end
+                    if childAddedConnection then
+                        childAddedConnection:Disconnect()
+                        childAddedConnection = nil
+                    end
+                    
+                    local camera = workspace.CurrentCamera
+                    if originalCameraSubject then
+                        camera.CameraSubject = originalCameraSubject
+                    end
+                    if cameraPart then
+                        cameraPart:Destroy()
+                        cameraPart = nil
+                    end
+                    
+                    enableInputs()
+                    
+                    if originalPlayerPosition and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                        LocalPlayer.Character.HumanoidRootPart.CFrame = originalPlayerPosition
+                        Rayfield:Notify({
+                            Title = "Position Restored",
+                            Content = "Teleported back to starting location",
+                            Duration = 3,
+                            Image = 4483362458
+                        })
+                    end
+                    
+                    Rayfield:Notify({
+                        Title = "System Stopped",
+                        Content = "Bring all system deactivated.",
+                        Duration = 3,
+                        Image = 4483362458
+                    })
+                end
+            end
+        end,
+    })
+
+    local EmergencyStopButton = Tab:CreateButton({
+        Name = "Emergency Stop",
+        Info = "Force stop and return to original position",
+        Callback = function()
+            print("Emergency stop button clicked")
+            
+            if isRunning then
+                isRunning = false
+                
+                if searchConnection then
+                    searchConnection:Disconnect()
+                    searchConnection = nil
+                end
+                if childAddedConnection then
+                    childAddedConnection:Disconnect()
+                    childAddedConnection = nil
+                end
+                
+                local camera = workspace.CurrentCamera
+                if originalCameraSubject then
+                    camera.CameraSubject = originalCameraSubject
+                end
+                if cameraPart then
+                    cameraPart:Destroy()
+                    cameraPart = nil
+                end
+                
+                enableInputs()
+                
+                if originalPlayerPosition and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    LocalPlayer.Character.HumanoidRootPart.CFrame = originalPlayerPosition
+                end
+                
+                Rayfield:Notify({
+                    Title = "Emergency Stop",
+                    Content = "System force stopped and position restored!",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            else
+                Rayfield:Notify({
+                    Title = "System Idle",
+                    Content = "System is not currently running.",
+                    Duration = 3,
+                    Image = 4483362458
+                })
+            end
+        end,
+    })
+end
+
+-- Load Rayfield and set up UI
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+if not success then
+    warn("❌ Failed to load Rayfield ")
+    return
+end
+
+local Window = Rayfield:CreateWindow({
+    Name = "Item Bringer",
+    LoadingTitle = "Loading Item Bringer...",
+    LoadingSubtitle = "Fryzer Hub",
+})
+local Tab = Window:CreateTab("Bring Items", 4483362458)
+
+createUI(Tab, Rayfield)
