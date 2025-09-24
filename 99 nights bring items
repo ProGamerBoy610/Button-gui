@@ -210,7 +210,7 @@ local function createUI(Tab, Rayfield)
             moreSpeedEnabled = Value
             print("More Speed Mode: " .. tostring(Value))
             Rayfield:Notify({
-                Title = Value and "⚡ More Speed ON" or "🐌 Normal Mode",
+                Title = Value and "More Speed ON" or "Normal Mode",
                 Content = Value and "Bringing will be much faster!" or "Bringing will be more stable.",
                 Duration = 3,
                 Image = 4483362458
@@ -297,7 +297,7 @@ local function createUI(Tab, Rayfield)
                     
                     Rayfield:Notify({
                         Title = "🎮 Bring All Active",
-                        Content = "Real-time bringing of all items from workspace.Items!",
+                        Content = "Real-time bringing of all",
                         Duration = 5,
                         Image = 4483362458
                     })
