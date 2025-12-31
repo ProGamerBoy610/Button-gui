@@ -6,7 +6,7 @@ local KeySystem = {}
 
 -- API Configuration
 local API_URL = "https://v0-dexme-key-system.vercel.app/api/validate"
-local GET_KEY_URL = "https://v0-fryzerhub-key-system-2.vercel.app"
+local GET_KEY_URL = "https://v0-dexme-key-system.vercel.app"
 
 --! Services
 local HttpService = game:GetService("HttpService")
