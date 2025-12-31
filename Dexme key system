@@ -1,0 +1,466 @@
+-- ===================================================
+-- KEY SYSTEM - MAIN FILE (Upload this to GitHub)
+-- ===================================================
+
+local KeySystem = {}
+
+-- API Configuration
+local API_URL = "https://v0-fryzerhub-key-system-2.vercel.app/api/validate"
+local GET_KEY_URL = "https://v0-fryzerhub-key-system-2.vercel.app"
+
+--! Services
+local Players = game:GetService("Players")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+
+local player = Players.LocalPlayer
+local playerGui = player:WaitForChild("PlayerGui")
+
+--! Utility Functions
+local fSetClipboard = setclipboard or toclipboard
+
+--! Get HWID
+local function getHWID()
+    local success, hwid = pcall(function()
+        return game:GetService("RbxAnalyticsService"):GetClientId()
+    end)
+    return success and hwid or HttpService:GenerateGUID(false)
+end
+
+--! Parse time remaining to seconds
+local function parseTimeRemaining(timeString)
+    local hours = tonumber(timeString:match("(%d+)h")) or 0
+    local minutes = tonumber(timeString:match("(%d+)m")) or 0
+    local seconds = tonumber(timeString:match("(%d+)s")) or 0
+    
+    return (hours * 3600) + (minutes * 60) + seconds
+end
+
+--! Format seconds to readable time
+local function formatTime(seconds)
+    if seconds <= 0 then
+        return "Expired"
+    end
+    
+    local hours = math.floor(seconds / 3600)
+    local minutes = math.floor((seconds % 3600) / 60)
+    local secs = seconds % 60
+    
+    if hours > 0 then
+        return string.format("%dh %dm %ds", hours, minutes, secs)
+    elseif minutes > 0 then
+        return string.format("%dm %ds", minutes, secs)
+    else
+        return string.format("%ds", secs)
+    end
+end
+
+--! Validate Key with API
+local function validateKey(key)
+    local hwid = getHWID()
+    
+    local url = API_URL .. "?key=" .. HttpService:UrlEncode(key) .. "&hwid=" .. HttpService:UrlEncode(hwid)
+    
+    local success, response = pcall(function()
+        return game:HttpGet(url)
+    end)
+    
+    if not success then
+        return false, "Network error: Unable to connect to server", nil
+    end
+    
+    local parseSuccess, data = pcall(function()
+        return HttpService:JSONDecode(response)
+    end)
+    
+    if not parseSuccess then
+        return false, "Invalid server response", nil
+    end
+    
+    if data.success then
+        local timeInSeconds = parseTimeRemaining(data.data.timeRemaining)
+        return true, "Key verified! " .. data.data.timeRemaining .. " remaining", timeInSeconds
+    else
+        return false, data.message or "Invalid key", nil
+    end
+end
+
+--! Main Function
+function KeySystem:Load(scriptUrl)
+    repeat task.wait(1) until game:IsLoaded()
+    
+    local GUI_SIZE = UDim2.new(0, 400, 0, 250)
+    local BLACK = Color3.fromRGB(0, 0, 0)
+    local WHITE = Color3.fromRGB(255, 255, 255)
+    local DARK_GRAY = Color3.fromRGB(20, 20, 20)
+    local LIGHT_GRAY = Color3.fromRGB(240, 240, 240)
+    local MEDIUM_GRAY = Color3.fromRGB(128, 128, 128)
+    
+    if playerGui:FindFirstChild("MinimalKeyGUI") then
+        playerGui.MinimalKeyGUI:Destroy()
+    end
+    
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Name = "MinimalKeyGUI"
+    screenGui.ResetOnSpawn = false
+    screenGui.Parent = playerGui
+    
+    local mainFrame = Instance.new("Frame")
+    mainFrame.Name = "MainFrame"
+    mainFrame.Size = GUI_SIZE
+    mainFrame.Position = UDim2.new(0.5, -200, 0.5, -125)
+    mainFrame.BackgroundColor3 = BLACK
+    mainFrame.BorderSizePixel = 0
+    mainFrame.Parent = screenGui
+    
+    local borderFrame = Instance.new("Frame")
+    borderFrame.Name = "BorderFrame"
+    borderFrame.Size = UDim2.new(1, 6, 1, 6)
+    borderFrame.Position = UDim2.new(0, -3, 0, -3)
+    borderFrame.BackgroundColor3 = WHITE
+    borderFrame.BorderSizePixel = 0
+    borderFrame.ZIndex = -1
+    borderFrame.Parent = mainFrame
+    
+    local titleSection = Instance.new("Frame")
+    titleSection.Name = "TitleSection"
+    titleSection.Size = UDim2.new(1, 0, 0, 60)
+    titleSection.Position = UDim2.new(0, 0, 0, 0)
+    titleSection.BackgroundColor3 = WHITE
+    titleSection.BorderSizePixel = 0
+    titleSection.Parent = mainFrame
+    
+    local titleLabel = Instance.new("TextLabel")
+    titleLabel.Name = "Title"
+    titleLabel.Size = UDim2.new(0.7, 0, 1, 0)
+    titleLabel.Position = UDim2.new(0, 20, 0, 0)
+    titleLabel.BackgroundTransparency = 1
+    titleLabel.Text = "KEY SYSTEM"
+    titleLabel.TextColor3 = BLACK
+    titleLabel.TextSize = 24
+    titleLabel.Font = Enum.Font.SourceSansBold
+    titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+    titleLabel.Parent = titleSection
+    
+    local timeLabel = Instance.new("TextLabel")
+    timeLabel.Name = "TimeLabel"
+    timeLabel.Size = UDim2.new(0.3, -20, 0, 30)
+    timeLabel.Position = UDim2.new(0.7, 0, 0, 15)
+    timeLabel.BackgroundTransparency = 1
+    timeLabel.Text = ""
+    timeLabel.TextColor3 = BLACK
+    timeLabel.TextSize = 14
+    timeLabel.Font = Enum.Font.SourceSansBold
+    timeLabel.TextXAlignment = Enum.TextXAlignment.Right
+    timeLabel.TextYAlignment = Enum.TextYAlignment.Center
+    timeLabel.Visible = false
+    timeLabel.Parent = titleSection
+    
+    local separator = Instance.new("Frame")
+    separator.Name = "Separator"
+    separator.Size = UDim2.new(1, -40, 0, 1)
+    separator.Position = UDim2.new(0, 20, 1, -1)
+    separator.BackgroundColor3 = BLACK
+    separator.BorderSizePixel = 0
+    separator.Parent = titleSection
+    
+    local contentFrame = Instance.new("Frame")
+    contentFrame.Name = "ContentFrame"
+    contentFrame.Size = UDim2.new(1, -40, 1, -80)
+    contentFrame.Position = UDim2.new(0, 20, 0, 70)
+    contentFrame.BackgroundTransparency = 1
+    contentFrame.Parent = mainFrame
+    
+    local statusLabel = Instance.new("TextLabel")
+    statusLabel.Name = "Status"
+    statusLabel.Size = UDim2.new(1, 0, 0, 20)
+    statusLabel.Position = UDim2.new(0, 0, 0, 0)
+    statusLabel.BackgroundTransparency = 1
+    statusLabel.Text = "Enter your access key"
+    statusLabel.TextColor3 = WHITE
+    statusLabel.TextSize = 14
+    statusLabel.Font = Enum.Font.SourceSans
+    statusLabel.TextXAlignment = Enum.TextXAlignment.Left
+    statusLabel.Parent = contentFrame
+    
+    local inputContainer = Instance.new("Frame")
+    inputContainer.Name = "InputContainer"
+    inputContainer.Size = UDim2.new(1, 0, 0, 40)
+    inputContainer.Position = UDim2.new(0, 0, 0, 30)
+    inputContainer.BackgroundColor3 = BLACK
+    inputContainer.BorderSizePixel = 0
+    inputContainer.Parent = contentFrame
+    
+    local inputBorder = Instance.new("Frame")
+    inputBorder.Name = "InputBorder"
+    inputBorder.Size = UDim2.new(1, 2, 1, 2)
+    inputBorder.Position = UDim2.new(0, -1, 0, -1)
+    inputBorder.BackgroundColor3 = WHITE
+    inputBorder.BorderSizePixel = 0
+    inputBorder.ZIndex = -1
+    inputBorder.Parent = inputContainer
+    
+    local keyBox = Instance.new("TextBox")
+    keyBox.Name = "KeyBox"
+    keyBox.Size = UDim2.new(1, -20, 1, 0)
+    keyBox.Position = UDim2.new(0, 10, 0, 0)
+    keyBox.BackgroundTransparency = 1
+    keyBox.Text = ""
+    keyBox.PlaceholderText = "Paste key here..."
+    keyBox.TextColor3 = WHITE
+    keyBox.PlaceholderColor3 = MEDIUM_GRAY
+    keyBox.TextSize = 16
+    keyBox.Font = Enum.Font.SourceSans
+    keyBox.ClearTextOnFocus = false
+    keyBox.TextXAlignment = Enum.TextXAlignment.Left
+    keyBox.ClipsDescendants = true
+    keyBox.Parent = inputContainer
+    
+    local buttonFrame = Instance.new("Frame")
+    buttonFrame.Name = "ButtonFrame"
+    buttonFrame.Size = UDim2.new(1, 0, 0, 40)
+    buttonFrame.Position = UDim2.new(0, 0, 0, 85)
+    buttonFrame.BackgroundTransparency = 1
+    buttonFrame.Parent = contentFrame
+    
+    local function createButton(name, text, position, isBlack)
+        local button = Instance.new("TextButton")
+        button.Name = name
+        button.Size = UDim2.new(0.48, 0, 1, 0)
+        button.Position = position
+        button.BackgroundColor3 = isBlack and BLACK or WHITE
+        button.BorderSizePixel = 0
+        button.Text = text
+        button.TextColor3 = isBlack and WHITE or BLACK
+        button.TextSize = 14
+        button.Font = Enum.Font.SourceSansBold
+        button.Parent = buttonFrame
+        
+        local buttonBorder = Instance.new("Frame")
+        buttonBorder.Name = "Border"
+        buttonBorder.Size = UDim2.new(1, 2, 1, 2)
+        buttonBorder.Position = UDim2.new(0, -1, 0, -1)
+        buttonBorder.BackgroundColor3 = isBlack and WHITE or BLACK
+        buttonBorder.BorderSizePixel = 0
+        buttonBorder.ZIndex = -1
+        buttonBorder.Parent = button
+        
+        return button
+    end
+    
+    local getKeyButton = createButton("GetKeyButton", "GET KEY", UDim2.new(0, 0, 0, 0), true)
+    local verifyButton = createButton("VerifyButton", "CHECK KEY", UDim2.new(0.52, 0, 0, 0), false)
+    
+    local progressContainer = Instance.new("Frame")
+    progressContainer.Name = "ProgressContainer"
+    progressContainer.Size = UDim2.new(1, 0, 0, 3)
+    progressContainer.Position = UDim2.new(0, 0, 1, -10)
+    progressContainer.BackgroundColor3 = DARK_GRAY
+    progressContainer.BorderSizePixel = 0
+    progressContainer.Visible = false
+    progressContainer.Parent = contentFrame
+    
+    local progressBar = Instance.new("Frame")
+    progressBar.Name = "ProgressBar"
+    progressBar.Size = UDim2.new(0, 0, 1, 0)
+    progressBar.Position = UDim2.new(0, 0, 0, 0)
+    progressBar.BackgroundColor3 = WHITE
+    progressBar.BorderSizePixel = 0
+    progressBar.Parent = progressContainer
+    
+    local function fadeText(element, transparency, duration)
+        return TweenService:Create(
+            element,
+            TweenInfo.new(duration or 0.3, Enum.EasingStyle.Quad),
+            {TextTransparency = transparency}
+        )
+    end
+    
+    local function updateStatus(message, isError, showProgress)
+        statusLabel.Text = message
+        statusLabel.TextColor3 = isError and LIGHT_GRAY or WHITE
+        
+        if showProgress then
+            progressContainer.Visible = true
+            progressBar.Size = UDim2.new(0, 0, 1, 0)
+            
+            local tween = TweenService:Create(
+                progressBar,
+                TweenInfo.new(2, Enum.EasingStyle.Linear),
+                {Size = UDim2.new(1, 0, 1, 0)}
+            )
+            tween:Play()
+            tween.Completed:Connect(function()
+                task.wait(0.5)
+                progressContainer.Visible = false
+            end)
+        else
+            progressContainer.Visible = false
+        end
+    end
+    
+    local function setupButton(button, isBlack)
+        local originalBg = button.BackgroundColor3
+        local hoverBg = isBlack and DARK_GRAY or LIGHT_GRAY
+        
+        button.MouseEnter:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = hoverBg}):Play()
+        end)
+        
+        button.MouseLeave:Connect(function()
+            TweenService:Create(button, TweenInfo.new(0.2), {BackgroundColor3 = originalBg}):Play()
+        end)
+        
+        button.MouseButton1Down:Connect(function()
+            local flashTween = TweenService:Create(
+                button,
+                TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, true),
+                {BackgroundColor3 = isBlack and WHITE or BLACK, TextColor3 = isBlack and BLACK or WHITE}
+            )
+            flashTween:Play()
+        end)
+    end
+    
+    local timerConnection = nil
+    local function startTimer(initialSeconds)
+        if timerConnection then
+            timerConnection:Disconnect()
+        end
+        
+        local remainingSeconds = initialSeconds
+        timeLabel.Visible = true
+        timeLabel.Text = formatTime(remainingSeconds)
+        
+        timerConnection = game:GetService("RunService").Heartbeat:Connect(function()
+            remainingSeconds = remainingSeconds - (1/60)
+            
+            if remainingSeconds <= 0 then
+                timeLabel.Text = "Expired"
+                if timerConnection then
+                    timerConnection:Disconnect()
+                end
+            else
+                timeLabel.Text = formatTime(math.floor(remainingSeconds))
+            end
+        end)
+    end
+    
+    keyBox.Focused:Connect(function()
+        TweenService:Create(inputBorder, TweenInfo.new(0.2), {BackgroundColor3 = LIGHT_GRAY}):Play()
+    end)
+    
+    keyBox.FocusLost:Connect(function(enterPressed)
+        TweenService:Create(inputBorder, TweenInfo.new(0.2), {BackgroundColor3 = WHITE}):Play()
+        if enterPressed then
+            verifyButton.MouseButton1Click:Fire()
+        end
+    end)
+    
+    setupButton(getKeyButton, true)
+    setupButton(verifyButton, false)
+    
+    getKeyButton.MouseButton1Click:Connect(function()
+        updateStatus("Key link copied to clipboard!", false, true)
+        
+        spawn(function()
+            local success = pcall(function()
+                fSetClipboard(GET_KEY_URL)
+            end)
+            
+            if not success then
+                updateStatus("Get key link: " .. GET_KEY_URL, false)
+            end
+        end)
+    end)
+    
+    verifyButton.MouseButton1Click:Connect(function()
+        local key = keyBox.Text:gsub("%s+", "")
+        
+        if key == "" then
+            updateStatus("Please enter a key", true)
+            return
+        end
+        
+        updateStatus("Checking key...", false, true)
+        
+        spawn(function()
+            local success, message, timeInSeconds = validateKey(key)
+            
+            if success then
+                updateStatus("Key is correct! Loading...", false)
+                
+                if timeInSeconds and timeInSeconds > 0 then
+                    startTimer(timeInSeconds)
+                end
+                
+                task.wait(1)
+                
+                local fadeOut = TweenService:Create(
+                    mainFrame,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+                    {BackgroundTransparency = 1}
+                )
+                
+                local borderFadeOut = TweenService:Create(
+                    borderFrame,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+                    {BackgroundTransparency = 1}
+                )
+                
+                local titleFadeOut = TweenService:Create(
+                    titleSection,
+                    TweenInfo.new(0.5, Enum.EasingStyle.Quad),
+                    {BackgroundTransparency = 1}
+                )
+                
+                fadeOut:Play()
+                borderFadeOut:Play()
+                titleFadeOut:Play()
+                fadeText(titleLabel, 1, 0.5):Play()
+                fadeText(timeLabel, 1, 0.5):Play()
+                fadeText(statusLabel, 1, 0.5):Play()
+                
+                fadeOut.Completed:Connect(function()
+                    screenGui:Destroy()
+                    if timerConnection then
+                        timerConnection:Disconnect()
+                    end
+                    
+                    -- Load the main script
+                    local scriptSuccess, scriptErr = pcall(function()
+                        loadstring(game:HttpGet(scriptUrl))()
+                    end)
+                    
+                    if not scriptSuccess then
+                        warn("[KEY SYSTEM] Failed to load script: " .. tostring(scriptErr))
+                    end
+                end)
+            else
+                updateStatus("Key is wrong! " .. (message or ""), true)
+                timeLabel.Visible = false
+            end
+        end)
+    end)
+    
+    -- Initial fade-in animation
+    mainFrame.BackgroundTransparency = 1
+    titleSection.BackgroundTransparency = 1
+    borderFrame.BackgroundTransparency = 1
+    titleLabel.TextTransparency = 1
+    statusLabel.TextTransparency = 1
+    
+    TweenService:Create(mainFrame, TweenInfo.new(0.4), {BackgroundTransparency = 0}):Play()
+    TweenService:Create(titleSection, TweenInfo.new(0.4), {BackgroundTransparency = 0}):Play()
+    TweenService:Create(borderFrame, TweenInfo.new(0.4), {BackgroundTransparency = 0}):Play()
+    
+    task.wait(0.1)
+    fadeText(titleLabel, 0, 0.3):Play()
+    task.wait(0.1)
+    fadeText(statusLabel, 0, 0.3):Play()
+    
+    updateStatus("Enter your access key", false)
+    
+    print("[KEY SYSTEM] Loaded successfully!")
+end
+
+return KeySystem
