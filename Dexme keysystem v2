@@ -164,7 +164,7 @@ local function createKeySystemGUI(scriptURL)
     CheckKeyButton.MouseButton1Click:Connect(function()
         local enteredKey = TextBox.Text
         
-        if enteredKey == "" or #enteredKey < 10 then
+        if enteredKey == "" or #enteredKey < 1 then
             StatusLabel.Text = "Error: Please enter a valid key (minimum 10 characters)."
             StatusLabel.TextColor3 = Color3.fromRGB(255, 100, 100)
             return
