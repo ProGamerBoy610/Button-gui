@@ -1,18 +1,10 @@
--- ===================================================
--- KEY SYSTEM - GITHUB VERIFICATION VERSION
--- ===================================================
-
--- Configuration
 local GET_KEY_URL = "https://link-center.net/1374420/kgAKcyzrFMvN"
 local GITHUB_KEYS_URL = "https://pastefy.app/00J5lsvY/raw"
 
--- Services
 local HttpService = game:GetService("HttpService")
 
--- Utility Functions
 local fSetClipboard = setclipboard or toclipboard
 
--- Get HWID
 local function getHWID()
     local success, hwid = pcall(function()
         return game:GetService("RbxAnalyticsService"):GetClientId()
@@ -20,11 +12,9 @@ local function getHWID()
     return success and hwid or HttpService:GenerateGUID(false)
 end
 
--- Validate Key with GitHub
 local function validateKey(key)
     local hwid = getHWID()
-    
-    -- Fetch valid keys from GitHub
+
     local success, response = pcall(function()
         return game:HttpGet(GITHUB_KEYS_URL)
     end)
@@ -33,10 +23,8 @@ local function validateKey(key)
         return false, "Network error: Unable to connect to the server. Please check your internet connection."
     end
     
-    -- Parse the keys (assuming format: key1,key2,key3 or one key per line)
     local validKeys = {}
     
-    -- Try comma-separated format first
     if string.find(response, ",") then
         for validKey in string.gmatch(response, "([^,]+)") do
             validKey = validKey:match("^%s*(.-)%s*$") -- trim whitespace
@@ -54,7 +42,6 @@ local function validateKey(key)
         end
     end
     
-    -- Check if entered key matches any valid key
     local trimmedKey = key:match("^%s*(.-)%s*$")
     
     for _, validKey in ipairs(validKeys) do
@@ -66,11 +53,9 @@ local function validateKey(key)
     return false, "Invalid key. Please get a valid key and try again."
 end
 
--- Create GUI Function
 local function createKeySystemGUI(scriptURL)
     repeat task.wait(1) until game:IsLoaded()
     
-    -- Create GUI
     local ScreenGui = Instance.new("ScreenGui")
     local Frame = Instance.new("Frame")
     local Title = Instance.new("TextLabel")
@@ -84,7 +69,6 @@ local function createKeySystemGUI(scriptURL)
     ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
     ScreenGui.ResetOnSpawn = false
     
-    -- Main Frame
     Frame.Parent = ScreenGui
     Frame.BackgroundColor3 = Color3.fromRGB(35, 35, 35)
     Frame.BorderSizePixel = 2
@@ -93,7 +77,6 @@ local function createKeySystemGUI(scriptURL)
     Frame.Size = UDim2.new(0, 350, 0, 250)
     Frame.Active = true
     
-    -- Title
     Title.Parent = Frame
     Title.BackgroundColor3 = Color3.fromRGB(25, 25, 25)
     Title.BorderSizePixel = 0
@@ -103,7 +86,6 @@ local function createKeySystemGUI(scriptURL)
     Title.TextColor3 = Color3.fromRGB(255, 255, 255)
     Title.TextSize = 22
     
-    -- TextBox for key input
     TextBox.Parent = Frame
     TextBox.BackgroundColor3 = Color3.fromRGB(45, 45, 45)
     TextBox.BorderSizePixel = 1
@@ -117,7 +99,6 @@ local function createKeySystemGUI(scriptURL)
     TextBox.TextSize = 14
     TextBox.ClearTextOnFocus = false
     
-    -- Get Key Button
     GetKeyButton.Parent = Frame
     GetKeyButton.BackgroundColor3 = Color3.fromRGB(50, 120, 255)
     GetKeyButton.BorderSizePixel = 0
@@ -139,7 +120,7 @@ local function createKeySystemGUI(scriptURL)
     CheckKeyButton.TextColor3 = Color3.fromRGB(255, 255, 255)
     CheckKeyButton.TextSize = 15
     
-    -- Status Label
+
     StatusLabel.Parent = Frame
     StatusLabel.BackgroundTransparency = 1
     StatusLabel.Position = UDim2.new(0, 20, 0, 165)
@@ -150,8 +131,7 @@ local function createKeySystemGUI(scriptURL)
     StatusLabel.TextSize = 13
     StatusLabel.TextWrapped = true
     StatusLabel.TextYAlignment = Enum.TextYAlignment.Top
-    
-    -- Get Key Button Function
+
     GetKeyButton.MouseButton1Click:Connect(function()
         pcall(function()
             fSetClipboard(GET_KEY_URL)
@@ -159,8 +139,7 @@ local function createKeySystemGUI(scriptURL)
         StatusLabel.Text = "Key link copied to clipboard! Paste it in your browser to get your key."
         StatusLabel.TextColor3 = Color3.fromRGB(100, 200, 255)
     end)
-    
-    -- Check Key Button Function
+
     CheckKeyButton.MouseButton1Click:Connect(function()
         local enteredKey = TextBox.Text
         
@@ -172,8 +151,7 @@ local function createKeySystemGUI(scriptURL)
         
         StatusLabel.Text = "Validating key, please wait..."
         StatusLabel.TextColor3 = Color3.fromRGB(255, 200, 100)
-        
-        -- Make the API request
+
         task.spawn(function()
             local success, message = validateKey(enteredKey)
             
@@ -183,10 +161,8 @@ local function createKeySystemGUI(scriptURL)
                 
                 task.wait(1)
                 
-                -- Destroy GUI
                 ScreenGui:Destroy()
                 
-                -- Load the script from URL
                 if scriptURL then
                     local scriptSuccess, scriptErr = pcall(function()
                         loadstring(game:HttpGet(scriptURL))()
@@ -204,10 +180,6 @@ local function createKeySystemGUI(scriptURL)
     
     print("Key System Loaded! Please enter your key to continue.")
 end
-
--- ===================================================
--- MODULE RETURN (Compatible with :Load() method)
--- ===================================================
 
 local KeySystem = {}
 
